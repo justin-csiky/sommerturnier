@@ -3,22 +3,17 @@ import sqlite3
 from datetime import datetime
 import time
 st.markdown("""
-    <style>
-        /* Hide Streamlit header */
-        /*header {visibility: hidden;}*/
-
-        /* Hide footer */
-        footer {visibility: hidden;}
-
-        /* Hide hamburger menu */
-        #MainMenu {visibility: hidden;}
-        #GithubIcon {visibility: hidden;}
-        .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
-        .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
-        .viewerBadge_text__1JaDK {
-            display: none;
-        }
-    </style>
+<style>
+    /* Hide top header, hamburger menu, and footer */
+    [data-testid="stHeader"] {display: none;}
+    footer {visibility: hidden;}
+    
+    /* Keep sidebar functional but hide the thin top bar of the sidebar */
+    [data-testid="stSidebar"] {
+        top: 0;
+        height: 100vh;
+    }
+</style>
 """, unsafe_allow_html=True)
 # --- DATABASE SETUP ---
 conn = sqlite3.connect("tournament.db", check_same_thread=False)
