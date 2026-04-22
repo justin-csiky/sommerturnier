@@ -6,9 +6,8 @@ st.markdown("""
 <style>
     /* Hide top header, hamburger menu, and footer */
     [data-testid="stHeader"] {display: none;}
+    [data-testid="manage-app-button"] {display: none;}
     footer {visibility: hidden;}
-    
-    /* Keep sidebar functional but hide the thin top bar of the sidebar */
     [data-testid="stSidebar"] {
         top: 0;
         height: 100vh;
