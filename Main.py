@@ -5,12 +5,9 @@ import time
 st.markdown("""
 <style>
     /* Hide top header, hamburger menu, and footer */
-    [data-testid="stHeader"] {display: none;}
+    [data-testid="stMainMenu"] {display: none;}
+    [data-testid="stToolbarActions"] {display: none;}
     [data-testid="appCreatorAvatar"] {display: none;}
-    [data-testid="stSidebar"] {
-        top: 0;
-        height: 100vh;
-    }
 </style>
 """, unsafe_allow_html=True)
 # --- DATABASE SETUP ---
