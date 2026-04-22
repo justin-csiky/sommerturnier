@@ -8,7 +8,7 @@ st.markdown("""
     [data-testid="stMainMenu"] {display: none;}
     [data-testid="stToolbarActions"] {display: none;}
     [data-testid="appCreatorAvatar"] {display: none;}
-    a[href="https://streamlit.io/cloud"] {display: none;}
+    a[href="https://streamlit.io/cloud"] {pointer-events: none; cursor: default;}
 </style>
 """, unsafe_allow_html=True)
 # --- DATABASE SETUP ---
