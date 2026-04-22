@@ -6,8 +6,7 @@ st.markdown("""
 <style>
     /* Hide top header, hamburger menu, and footer */
     [data-testid="stHeader"] {display: none;}
-    [data-testid="manage-app-button"] {display: none;}
-    footer {visibility: hidden;}
+    [data-testid="appCreatorAvatar"] {display: none;}
     [data-testid="stSidebar"] {
         top: 0;
         height: 100vh;
