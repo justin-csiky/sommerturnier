@@ -2,8 +2,18 @@ import streamlit as st
 import sqlite3
 from datetime import datetime
 import time
+st.markdown("""
+    <style>
+        /* Hide Streamlit header */
+        header {visibility: hidden;}
 
+        /* Hide footer */
+        footer {visibility: hidden;}
 
+        /* Hide hamburger menu */
+        #MainMenu {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
 # --- DATABASE SETUP ---
 conn = sqlite3.connect("tournament.db", check_same_thread=False)
 c = conn.cursor()
