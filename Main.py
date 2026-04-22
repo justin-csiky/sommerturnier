@@ -5,7 +5,7 @@ import time
 st.markdown("""
     <style>
         /* Hide Streamlit header */
-        header {visibility: hidden;}
+        /*header {visibility: hidden;}*/
 
         /* Hide footer */
         footer {visibility: hidden;}
