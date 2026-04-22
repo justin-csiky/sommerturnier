@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS matches (
 )
 """)
 conn.commit()
-st.set_page_config(initial_sidebar_state="collapsed")
+st.set_page_config(initial_sidebar_state="expanded")
 # --- ADMIN PASSWORD ---
 ADMIN_PASSWORD = "admin123"
 
