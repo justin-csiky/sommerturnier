@@ -13,6 +13,11 @@ st.markdown("""
         top: 0;
         height: 100vh;
     }
+    [data-testid="stToolbar"] {
+        visibility: hidden;
+        height: 0%;
+        position: fixed;
+    }
 </style>
 """, unsafe_allow_html=True)
 # --- DATABASE SETUP ---
