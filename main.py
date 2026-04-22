@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS matches (
 )
 """)
 conn.commit()
-
+st.set_page_config(initial_sidebar_state="collapsed")
 # --- ADMIN PASSWORD ---
 ADMIN_PASSWORD = "admin123"
 
@@ -125,11 +125,6 @@ def view_matches(value):
             shorts=fetch_initials(p1,p2)
             shp1=shorts[0]
             shp2=shorts[1]
-            vs = '''  
-              
-              
-            :
-            '''
             c1,c2,c3=st.columns(3,border=True)
             point_cell_width=45
             with c1:
@@ -213,9 +208,7 @@ def view_matches(value):
                 st.session_state.new_updates = True
                 st.success("Result submitted")
     return None
-
-st.set_page_config(initial_sidebar_state="collapsed")
-adminlogin=st.Page("pages/Admin_login.py", title="Login", icon=":material/login:")
+adminlogin=st.Page("./pages/1_Admin_login.py", title="Login", icon=":material/login:")
 matchview=st.Page(view_matches(1), title="Match Overview")
 
 # --- SIDEBAR ---
