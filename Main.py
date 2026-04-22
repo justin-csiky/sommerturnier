@@ -8,6 +8,7 @@ st.markdown("""
     [data-testid="stMainMenu"] {display: none;}
     [data-testid="stToolbarActions"] {display: none;}
     [data-testid="appCreatorAvatar"] {display: none;}
+    footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 # --- DATABASE SETUP ---
