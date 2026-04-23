@@ -243,14 +243,9 @@ def view_matches(value):
                 st.session_state.new_updates = True
                 st.success("Result submitted")
     return None
-def view_teams(value):
-    
-
-    return None
-
 adminlogin=st.Page("./pages/10_Admin_login.py", title="Login", icon=":material/login:")
 matchview=st.Page(view_matches(1), title="Match Overview")
-teamview=st.Page("./pages/1_Ergebnisübersicht.py",title="Team Overview")
+teamview=st.Page("./pages/1_Result_overview.py",title="Team Overview")
 
 # --- SIDEBAR ---
 #with st.sidebar:
