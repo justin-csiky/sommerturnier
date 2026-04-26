@@ -1,32 +1,31 @@
 import streamlit as st
 import sqlite3
 from datetime import datetime
-import time
+
+# --- UI CLEANUP ---
 st.markdown("""
 <style>
-    /* Hide top header, hamburger menu, and footer */
     [data-testid="stMainMenu"] {display: none;}
     [data-testid="stToolbarActions"] {display: none;}
     [data-testid="appCreatorAvatar"] {display: none;}
+    footer {display: none;}
 </style>
 """, unsafe_allow_html=True)
+
+st.set_page_config(initial_sidebar_state="expanded")
+
 # --- DATABASE SETUP ---
-class Player:
-    def __init__(self,a,b=0,c=0,d=0,e=0):
-       self.name=a 
-       self.wins=b
-       self.loses=c
-       self.wpoints=d
-       self.lpoints=e
-conn = sqlite3.connect("tournament.db", check_same_thread=False)
+conn = sqlite3.connect("matches.db", check_same_thread=False)
 c = conn.cursor()
-stats = sqlite3.connect("stats.db",check_same_thread=False)
-s =stats.cursor()
+
+stats = sqlite3.connect("teamstats.db", check_same_thread=False)
+s = stats.cursor()
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS matches (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    player1 INTEGER,
-    player2 INTEGER,
+    player1_id INTEGER,
+    player2_id INTEGER,
     court INTEGER,
     s1_p1 INTEGER,
     s1_p2 INTEGER,
@@ -35,272 +34,325 @@ CREATE TABLE IF NOT EXISTS matches (
     s3_p1 INTEGER,
     s3_p2 INTEGER,
     last_updated TIMESTAMP,
-    is_new INTEGER DEFAULT 0
+    is_new INTEGER DEFAULT 0,
+    is_visible INTEGER DEFAULT 0
 )
 """)
-conn.commit()
+
 s.execute("""
 CREATE TABLE IF NOT EXISTS teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
+    name TEXT UNIQUE,
     wins INTEGER,
     loses INTEGER,
     wpoints INTEGER,
     lpoints INTEGER
 )
 """)
+
+conn.commit()
 stats.commit()
-st.set_page_config(initial_sidebar_state="expanded")
+
 # --- SESSION STATE ---
 if "admin" not in st.session_state:
     st.session_state.admin = False
-
 if "selected_match" not in st.session_state:
     st.session_state.selected_match = None
 
-if "new_updates" not in st.session_state:
-    st.session_state.new_updates = False
+st.title("Sommerturnier - V1.0",anchor=False)
 
-if "team_view" not in st.session_state:
-    st.session_state.team_view = None
-
-st.title("Sommerturnier",anchor=False)
-
-# --- HELPER ---
-def parse_score(value):
+# --- HELPERS ---
+def parse_score(v):
     try:
-        return int(value)
+        return int(v)
     except:
         return 0
-def fetch_initials(str1, str2):
-    try:
-        if not str1[0]==str2[0]:
-            return [str1[0],str2[0]]
-        else:
-            a=[str1[0],str1[1]]
-            b=[str2[0],str2[1]]
-            return [''.join(a),''.join(b)]
-    except:
-        return str
     
-def view_matches(value):
-    # --- FETCH MATCHES ---
+def display_value(x):
+    return "" if x is None else str(x)
+
+def get_team_name(team_id):
+    res = s.execute("SELECT name FROM teams WHERE id=?", (team_id,)).fetchone()
+    return res[0] if res else "Unknown"
+
+# --- RECOMPUTE STATS ---
+def recompute_team_stats():
+    s.execute("UPDATE teams SET wins=0, loses=0, wpoints=0, lpoints=0")
+    stats.commit()
+
     matches = c.execute("""
-    SELECT id, player1, player2, court,
-        s1_p1, s1_p2,
-        s2_p1, s2_p2,
-        s3_p1, s3_p2,
-        last_updated, is_new
-    FROM matches
+        SELECT player1_id, player2_id,
+               s1_p1, s1_p2,
+               s2_p1, s2_p2,
+               s3_p1, s3_p2
+        FROM matches
     """).fetchall()
-    if st.session_state.selected_match is None:
-        with st.container(horizontal=True):
-            st.space("xxsmall")
-            st.subheader("On-going matches:", anchor=False)
-            st.space("stretch")
-            if st.button("↻ Refresh"):
-                st.rerun()  
-        if c.fetchone!=None:
-            for match in matches:
-                match_id, p1, p2, crt, *rest = match
-                is_new = rest[-1]
-                title = f"Court {crt}:\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0***{p1}*** vs ***{p2}***"
-                if is_new and st.session_state.admin:
-                    title += " ‼️"
-                if st.session_state.admin:
-                    with st.container(horizontal=True):                   
-                        if st.button(title, key=f"open_{match_id}",width=500):
-                            st.session_state.selected_match = match_id
-                            st.rerun()
-                        st.space("stretch")
-                        if st.session_state.admin:
-                            if st.button("🗑️",key=f"del_{match_id}",width=50):
-                                c.execute("DELETE FROM matches WHERE id=?", (match_id,))
-                                conn.commit()
-                                st.session_state.selected_match = None
-                                st.rerun()
-                else:
-                    with st.container(horizontal=True):
-                        st.space("stretch")
-                        if st.button(title, key=f"open_{match_id}",width=500):
-                            st.session_state.selected_match = match_id 
-                            st.rerun()      
-                        st.space("stretch")                             
-        
-    else:
-        match_id = st.session_state.selected_match
-        match = c.execute("""
-        SELECT id, player1, player2, court,
-            s1_p1, s1_p2,
-            s2_p1, s2_p2,
-            s3_p1, s3_p2,
-            last_updated, is_new
-        FROM matches WHERE id=?
-        """, (match_id,)).fetchone()
-        (match_id, p1, p2, crt,
-        s1p1, s1p2,
-        s2p1, s2p2,
-        s3p1, s3p2,
-        last_updated, is_new) = match
-        with st.container(horizontal=True):
-            st.space("xxsmall")
-            st.subheader(f"***{p1}*** vs ***{p2}***",anchor=False,width="content",text_alignment="left")
-            st.space("stretch")
-            if st.button("⬅ Back"):
-                st.session_state.selected_match = None
-                st.rerun()
-            if st.button("↻ Refresh"):
-                st.rerun()        
-        if is_new and st.session_state.admin:
-            c.execute("UPDATE matches SET is_new=0 WHERE id=?", (match_id,))
-            conn.commit()
-            st.session_state.new_updates = False
-        # --- INPUT FORM ---
-        with st.form('submit_results'):
-            shorts=fetch_initials(p1,p2)
-            shp1=shorts[0]
-            shp2=shorts[1]
-            c1,c2,c3=st.columns(3,border=False)
-            point_cell_width=45
-            with c1:
-                st.markdown("**Set 1**",text_alignment="center")
-                with st.container(horizontal=True,vertical_alignment="center",height=100):
-                    set1_p1 = parse_score(st.text_input(
-                        f"{shp1}",
-                        value=str(s1p1) if s1p1 else "",
-                        key="s1p1", width=point_cell_width, label_visibility="collapsed"
-                    ))
-                    st.space("stretch")
-                    st.markdown(":",text_alignment="center")
-                    st.space("stretch")
-                    set1_p2 = parse_score(st.text_input(
-                        f"{shp2}",
-                        value=str(s1p2) if s1p2 else "",
-                        key="s1p2", width=point_cell_width, label_visibility="collapsed"
-                    ))
-            with c2:
-                st.markdown("**Set 2**",text_alignment="center")
-                with st.container(horizontal=True,vertical_alignment="center",height=100):
-                    set2_p1 = parse_score(st.text_input(
-                        f"{shp1}",
-                        value=str(s2p1) if s2p1 else "",
-                        key="s2p13", width=point_cell_width, label_visibility="collapsed"
-                    ))
-                    st.space("stretch")
-                    st.markdown(":",text_alignment="center")
-                    st.space("stretch")
-                    set2_p2 = parse_score(st.text_input(
-                        f"{shp2}",
-                        value=str(s2p2) if s2p2 else "",
-                        key="s2p2", width=point_cell_width, label_visibility="collapsed"
-                    ))
-            with c3:
-                st.markdown("**Set 3 (optional)**",text_alignment="center")
-                with st.container(horizontal=True,vertical_alignment="center",height=100):
-                    set3_p1_raw = st.text_input(
-                        f"{shp1}",
-                        value=str(s3p1) if s3p1 else "",
-                        key="s3p1", width=point_cell_width, label_visibility="collapsed"
-                    )
-                    set3_p1 = parse_score(set3_p1_raw)
-                    st.space("stretch")
-                    st.markdown(":",text_alignment="center")
-                    st.space("stretch")
-                    set3_p2_raw = st.text_input(
-                        f"{shp2}",
-                        value=str(s3p2) if s3p2 else "",
-                        key="s3p2", width=point_cell_width, label_visibility="collapsed"
-                    )
-                    set3_p2 = parse_score(set3_p2_raw)
-            with st.container(horizontal=True):
-                st.space("stretch")
-                res=st.form_submit_button("Submit Results")
-                st.space("stretch")
-            if res:
-                if set3_p1_raw == "" and set3_p2_raw == "":
-                    s3p1_val = None
-                    s3p2_val = None
-                else:
-                    s3p1_val = set3_p1
-                    s3p2_val = set3_p2
-                
-                c.execute("""
-                    UPDATE matches 
-                    SET s1_p1=?, s1_p2=?,
-                        s2_p1=?, s2_p2=?,
-                        s3_p1=?, s3_p2=?,
-                        last_updated=?,
-                        is_new=1
-                    WHERE id=?
-                """, (
-                    set1_p1, set1_p2,
-                    set2_p1, set2_p2,
-                    s3p1_val, s3p2_val,
-                    datetime.now(),
-                    match_id
-                ))
-                conn.commit()
-                st.session_state.new_updates = True
-                st.success("Result submitted")
-    return None
-adminlogin=st.Page("./pages/10_Admin_login.py", title="Login", icon=":material/login:")
-matchview=st.Page(view_matches(1), title="Match Overview")
-teamview=st.Page("./pages/1_Result_overview.py",title="Team Overview")
 
-# --- SIDEBAR ---
-#with st.sidebar:
-    
+    for m in matches:
+        p1, p2, s1p1, s1p2, s2p1, s2p2, s3p1, s3p2 = m
 
-# --- ADMIN PANEL ---
-if st.session_state.admin and not st.session_state.selected_match:
+        if None in (s1p1, s1p2, s2p1, s2p2):
+            continue
+
+        sets1 = sets2 = 0
+
+        for a, b in [(s1p1, s1p2), (s2p1, s2p2), (s3p1, s3p2)]:
+            if a is None or b is None:
+                continue
+            if a > b:
+                sets1 += 1
+            else:
+                sets2 += 1
+
+        if sets1 > sets2:
+            s.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p1,))
+            s.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p2,))
+        else:
+            s.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p2,))
+            s.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p1,))
+
+        s.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets1, p1))
+        s.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets2, p1))
+        s.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets2, p2))
+        s.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets1, p2))
+
+    stats.commit()
+
+# =========================================================
+# ADMIN PANEL
+# =========================================================
+if st.session_state.admin and st.session_state.selected_match is None:
+
     st.subheader("➕ Add Team", anchor=False)
-    with st.form('add_team_form',clear_on_submit=True):
+
+    with st.form("add_team", clear_on_submit=True):
         with st.container(horizontal=True):
-            n = st.text_input("Team Name",placeholder="Team Name", width=200, label_visibility="collapsed")
+            name = st.text_input("Team Name",width=200,label_visibility="collapsed",placeholder="Team Name")
             st.space("stretch")
-            submit=st.form_submit_button("Add Team")
-            if submit:
-                s.execute("""
-                    INSERT INTO teams
-                    (name, wins, loses, wpoints, lpoints)
-                    VALUES (?, 0, 0, 0, 0)
-                """,(n,))
+            submit = st.form_submit_button("Add",width=60)
+        if submit:
+            if not name:
+                st.error("Enter name")
+            else:
+                exists = s.execute("SELECT id FROM teams WHERE name=?", (name,)).fetchone()
+                if exists:
+                    st.error("Team exists")
+                else:
+                    s.execute("""
+                        INSERT INTO teams (name, wins, loses, wpoints, lpoints)
+                        VALUES (?,0,0,0,0)
+                    """, (name,))
+                    stats.commit()
+                    st.success("Team added")
+                    st.rerun()
+
+
+    st.subheader("🗑️ Delete Team", anchor=False)
+
+    teams = s.execute("SELECT id, name FROM teams").fetchall()
+
+    team_names = [t[1] for t in teams]
+    team_dict = {t[1]: t[0] for t in teams}
+    with st.container(horizontal=True,border=True):
+        team_to_delete = st.selectbox("Select team", team_names,width=200, label_visibility="collapsed",placeholder="Select Team")
+        st.space("stretch")
+        if st.button("Delete Team"):
+            team_id = team_dict[team_to_delete]
+
+            # check if used in matches
+            used = c.execute("""
+                SELECT 1 FROM matches
+                WHERE player1_id=? OR player2_id=?
+                LIMIT 1
+            """, (team_id, team_id)).fetchone()
+
+            if used:
+                st.warning("Team is used in matches")
+
+                if st.button("Force delete (danger)"):
+                    c.execute("""
+                        DELETE FROM matches
+                        WHERE player1_id=? OR player2_id=?
+                    """, (team_id, team_id))
+                    conn.commit()
+
+                    s.execute("DELETE FROM teams WHERE id=?", (team_id,))
+                    stats.commit()
+
+                    recompute_team_stats()
+
+                    st.success("Team and related matches deleted")
+                    st.rerun()
+            else:
+                s.execute("DELETE FROM teams WHERE id=?", (team_id,))
                 stats.commit()
-                st.success("Match added")
-                st.rerun()    
+                st.success("Team deleted")
+                st.rerun()
+
     st.subheader("➕ Add Match", anchor=False)
-    teams = s.execute("""
-        SELECT id, name, wins, loses, wpoints, lpoints
-        FROM teams
-    """).fetchall()
-    drop_down_choices=[]
-    if s.fetchone!=None:
-        drop_down_choices=[team[1] for team in teams]
-    with st.form('add_match_form',clear_on_submit=True):
-         
-        col1, col2, col3, col4 = st.columns([2,2,1,1])
-        with col1:
-            p1 = st.selectbox("Team 1",placeholder="Team 1",options = drop_down_choices , width=300, label_visibility="collapsed")
-            #if p1:
-               # drop_down_choices.remove(p1)
-        with col2:
-            p2 = st.selectbox("Team 2",placeholder="Team 2",options = drop_down_choices , width=300, label_visibility="collapsed")
-            #if p2:
-                #drop_down_choices.remove(p2)
-        with col3:
-            crt = st.selectbox("Court", width=75, options=[1,2,3,4,5,6,7,8,9], label_visibility="collapsed", placeholder="Court")
-        with col4:
-            submit=st.form_submit_button("Add Match")
-        if p1 and p2 and crt and submit:
+
+    teams = s.execute("SELECT id, name FROM teams").fetchall()
+    team_dict = {name: tid for tid, name in teams}
+    names = list(team_dict.keys())
+
+    with st.form("add_match", clear_on_submit=False):
+        with st.container(horizontal=True,border=False, vertical_alignment="center",key="first"):
+            p1_name = st.selectbox("Team 1", names,width=200)
+            #remaining = [n for n in names if n != p1_name]
+            #p2_name = st.selectbox("Team 2", remaining)
+            p2_name = st.selectbox("Team 2", names,width=200)
+            st.space("stretch")
+            court = st.selectbox("Court", list(range(1,10)), width=100)
+        with st.container(horizontal=True,border=False, vertical_alignment="center",key="second"):
+            st.space("stretch")
+            submit = st.form_submit_button("Add Match")
+            st.space("stretch")
+            if submit:
+                c.execute("""
+                    INSERT INTO matches (player1_id, player2_id, court)
+                    VALUES (?, ?, ?)
+                """, (team_dict[p1_name], team_dict[p2_name], court))
+                conn.commit()
+                st.success("Match added")
+                st.rerun()
+
+# =========================================================
+# MATCH LIST
+# =========================================================
+matches = c.execute("""
+SELECT id, player1_id, player2_id, court, last_updated, is_visible
+FROM matches
+""").fetchall()
+
+if st.session_state.selected_match is None:
+
+    st.subheader("Matches", anchor=False)
+
+    for m in matches:
+        mid, p1, p2, court, updated, visible = m
+        if visible or st.session_state.admin:    
+            name1 = get_team_name(p1)
+            name2 = get_team_name(p2)
+
+            col1, col2, col3 = st.columns([5,1,1])
+
+            with col1:
+                if st.button(f"\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0Court {court}:\u00A0\u00A0\u00A0***{name1}*** vs ***{name2}***", key=f"open_{mid}",width=300,):
+                    st.session_state.selected_match = mid
+                    st.rerun()
+            with col2:
+                if st.session_state.admin and visible:
+                    if st.button(f"🔓", key=f"vis_match_{mid}"):
+                        c.execute("UPDATE matches SET is_visible=? WHERE id=?", (0,mid))
+                        conn.commit()
+                        st.rerun()
+                elif st.session_state.admin and not visible:
+                    if st.button(f"🔐", key=f"vis_match_{mid}"):
+                        c.execute("UPDATE matches SET is_visible=? WHERE id=?", (1,mid))
+                        conn.commit()
+                        st.rerun()
+            with col3:
+                if st.session_state.admin:
+                    if st.button("🗑️", key=f"del_match_{mid}"):
+                        c.execute("DELETE FROM matches WHERE id=?", (mid,))
+                        conn.commit()
+
+                        recompute_team_stats()
+
+                        st.success("Match deleted")
+                        st.rerun()
+
+
+# =========================================================
+# MATCH DETAIL
+# =========================================================
+else:
+    mid = st.session_state.selected_match
+
+    m = c.execute("""
+    SELECT * FROM matches WHERE id=?
+    """, (mid,)).fetchone()
+
+    (_, p1, p2, court,
+     s1p1, s1p2, s2p1, s2p2, s3p1, s3p2,
+     last_updated,is_visible, _) = m
+
+    name1 = get_team_name(p1)
+    name2 = get_team_name(p2)
+
+    st.subheader(f"***{name1}*** vs ***{name2}***",anchor=False)
+
+    if st.button("⬅ Back"):
+        st.session_state.selected_match = None
+        st.rerun()
+
+    is_locked = last_updated is not None and not st.session_state.admin
+
+    if is_locked:
+        st.warning("Result submitted.")
+
+    with st.form("result_form"):
+        # --- SET 1 ---
+        s1a = parse_score(st.text_input(
+            "Set1 Team1",
+            value=str(s1p1) if s1p1 is not None else ""
+        ))
+        s1b = parse_score(st.text_input(
+            "Set1 Team2",
+            value=str(s1p2) if s1p2 is not None else ""
+        ))
+
+        # --- SET 2 ---
+        s2a = parse_score(st.text_input(
+            "Set2 Team1",
+            value=str(s2p1) if s2p1 is not None else ""
+        ))
+        s2b = parse_score(st.text_input(
+            "Set2 Team2",
+            value=str(s2p2) if s2p2 is not None else ""
+        ))
+
+        # --- SET 3 ---
+        s3a_raw = st.text_input(
+            "Set3 Team1",
+            value=str(s3p1) if s3p1 is not None else ""
+        )
+        s3b_raw = st.text_input(
+            "Set3 Team2",
+            value=str(s3p2) if s3p2 is not None else ""
+        )
+
+        s3a = parse_score(s3a_raw)
+        s3b = parse_score(s3b_raw)
+
+        submit = st.form_submit_button("Submit", disabled=is_locked)
+
+        if submit:
+
+            # --- detect if set 3 was played ---
+            if s3a_raw.strip() == "" and s3b_raw.strip() == "":
+                s3a_val = None
+                s3b_val = None
+            else:
+                s3a_val = s3a
+                s3b_val = s3b
+
             c.execute("""
-                INSERT INTO matches 
-                (player1, player2, court,
-                    s1_p1, s1_p2,
-                    s2_p1, s2_p2,
-                    s3_p1, s3_p2,
-                    last_updated, is_new)
-                VALUES (?, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0)
-            """, (p1, p2, crt))
+                UPDATE matches SET
+                s1_p1=?, s1_p2=?,
+                s2_p1=?, s2_p2=?,
+                s3_p1=?, s3_p2=?,
+                last_updated=?
+                WHERE id=?
+            """, (s1a, s1b, s2a, s2b, s3a_val, s3b_val, datetime.now(), mid))
+
             conn.commit()
-            st.success("Match added")
+
+            recompute_team_stats()
+
+            st.success("Saved")
             st.rerun()
+with st.container(horizontal=True):
+    st.space("stretch")
+    if st.button("Reload"):
+        st.rerun()

@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import sqlite3
 st.markdown("""
 <style>
@@ -8,19 +9,17 @@ st.markdown("""
     [data-testid="appCreatorAvatar"] {display: none;}
 </style>
 """, unsafe_allow_html=True)
-stats = sqlite3.connect("stats.db",check_same_thread=False)
+stats = sqlite3.connect("teamstats.db",check_same_thread=False)
 s =stats.cursor()
-st.subheader("Team list", anchor=False)
-teams = s.execute("""
-    SELECT id, name, wins, loses, wpoints, lpoints
-    FROM teams
+st.subheader("Standings", anchor=False)
+table = s.execute("""
+SELECT name, wins, loses, wpoints, lpoints
+FROM teams
+ORDER BY wins DESC, wpoints DESC
 """).fetchall()
-for team in teams:
-    team_id, team_name, w, l, wp, lp = team
-    with st.container(horizontal=True):
-        st.write(team_name)
-        if st.session_state.admin:
-            if st.button("🗑️",key=f"del_{team_id}",width=50):
-                s.execute("DELETE FROM teams WHERE id=?", (team_id,))
-                stats.commit()
-                st.rerun()
+df=pd.DataFrame(table,columns=["","Wins","Loses","Sets won", "Sets lost"])
+st.table(df)
+with st.container(horizontal=True):
+    st.space("stretch")
+    if st.button("Reload"):
+        st.rerun()
