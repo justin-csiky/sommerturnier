@@ -12,6 +12,23 @@ st.markdown("""
     footer {display: none;}
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+    /* Hide bottom-right floating button */
+    button[kind="header"] {
+        visibility: hidden;
+    }
+
+    /* Extra fallback selectors */
+    [data-testid="stStatusWidget"] {
+        display: none;
+    }
+
+    .stDeployButton {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 st.set_page_config(page_title="Sommerturnier",initial_sidebar_state="expanded",layout="wide",page_icon=":badminton:")
 home=st.Page("./Home.py",title="Home",icon=":material/dashboard:")
@@ -66,7 +83,7 @@ if "selected_match" not in st.session_state:
 if "stt" not in st.session_state:
     st.session_state.stt = False
 
-st.title("Sommerturnier - V1.1",anchor=False)
+st.title("Sommerturnier - V1.1.2",anchor=False)
 
 # --- HELPERS ---
 def parse_score(v):
