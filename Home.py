@@ -8,6 +8,7 @@ st.markdown("""
     [data-testid="stMainMenu"] {display: none;}
     [data-testid="stToolbarActions"] {display: none;}
     [data-testid="appCreatorAvatar"] {display: none;}
+    [data-testid="manage-app-button"] {display: none;}
     footer {display: none;}
 </style>
 """, unsafe_allow_html=True)
