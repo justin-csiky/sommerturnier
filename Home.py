@@ -12,7 +12,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(initial_sidebar_state="expanded")
+st.set_page_config(page_title="Sommerturnier",initial_sidebar_state="expanded",layout="wide",page_icon=":badminton:")
+home=st.Page("./Home.py",title="Home",icon=":material/dashboard:")
+admin=st.Page("./pages/10_Admin_login.py",title="Admin",icon=":material/admin_panel_settings:")
 
 # --- DATABASE SETUP ---
 conn = sqlite3.connect("matches.db", check_same_thread=False)
@@ -35,7 +37,8 @@ CREATE TABLE IF NOT EXISTS matches (
     s3_p2 INTEGER,
     last_updated TIMESTAMP,
     is_new INTEGER DEFAULT 0,
-    is_visible INTEGER DEFAULT 0
+    is_visible INTEGER DEFAULT 0,
+    match_class STRING
 )
 """)
 
@@ -46,7 +49,8 @@ CREATE TABLE IF NOT EXISTS teams (
     wins INTEGER,
     loses INTEGER,
     wpoints INTEGER,
-    lpoints INTEGER
+    lpoints INTEGER,
+    class STRING
 )
 """)
 
@@ -58,8 +62,10 @@ if "admin" not in st.session_state:
     st.session_state.admin = False
 if "selected_match" not in st.session_state:
     st.session_state.selected_match = None
+if "stt" not in st.session_state:
+    st.session_state.stt = False
 
-st.title("Sommerturnier - V1.0",anchor=False)
+st.title("Sommerturnier - V1.1",anchor=False)
 
 # --- HELPERS ---
 def parse_score(v):
@@ -123,13 +129,14 @@ def recompute_team_stats():
 # =========================================================
 if st.session_state.admin and st.session_state.selected_match is None:
 
-    st.subheader("➕ Add Team", anchor=False)
+    st.subheader(":material/Add_2: Add Team", anchor=False)
 
-    with st.form("add_team", clear_on_submit=True):
+    with st.form("add_team", clear_on_submit=True,border=False):
         with st.container(horizontal=True):
             name = st.text_input("Team Name",width=200,label_visibility="collapsed",placeholder="Team Name")
+            klasse = st.selectbox("Klasse", ["MX","HD","DD","LVL1/2"],width=200, label_visibility="collapsed", placeholder="Klasse", index=None)
             st.space("stretch")
-            submit = st.form_submit_button("Add",width=60)
+            submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
         if submit:
             if not name:
                 st.error("Enter name")
@@ -139,24 +146,24 @@ if st.session_state.admin and st.session_state.selected_match is None:
                     st.error("Team exists")
                 else:
                     s.execute("""
-                        INSERT INTO teams (name, wins, loses, wpoints, lpoints)
-                        VALUES (?,0,0,0,0)
-                    """, (name,))
+                        INSERT INTO teams (name, wins, loses, wpoints, lpoints, class)
+                        VALUES (?,0,0,0,0,?)
+                    """, (name,klasse))
                     stats.commit()
                     st.success("Team added")
                     st.rerun()
+    st.divider()
 
-
-    st.subheader("🗑️ Delete Team", anchor=False)
+    st.subheader(":material/Delete: Delete Team", anchor=False)
 
     teams = s.execute("SELECT id, name FROM teams").fetchall()
 
     team_names = [t[1] for t in teams]
     team_dict = {t[1]: t[0] for t in teams}
-    with st.container(horizontal=True,border=True):
-        team_to_delete = st.selectbox("Select team", team_names,width=200, label_visibility="collapsed",placeholder="Select Team")
+    with st.container(horizontal=True,border=False):
+        team_to_delete = st.selectbox("Select team", team_names,width=200, label_visibility="collapsed",placeholder="Select Team",index=None)
         st.space("stretch")
-        if st.button("Delete Team"):
+        if st.button(":material/do_not_disturb_on: Delete",width=100):
             team_id = team_dict[team_to_delete]
 
             # check if used in matches
@@ -188,33 +195,34 @@ if st.session_state.admin and st.session_state.selected_match is None:
                 stats.commit()
                 st.success("Team deleted")
                 st.rerun()
+    st.divider()
+    st.subheader(":material/Add_2: Add Match", anchor=False)
 
-    st.subheader("➕ Add Match", anchor=False)
-
-    teams = s.execute("SELECT id, name FROM teams").fetchall()
-    team_dict = {name: tid for tid, name in teams}
+    teams = s.execute("SELECT id, name, class FROM teams").fetchall()
+    team_dict = {name: tid for tid, name, klasse in teams}
+    team_klasse = {name: klasse for tid, name, klasse in teams}
     names = list(team_dict.keys())
 
-    with st.form("add_match", clear_on_submit=False):
+    with st.form("add_match", clear_on_submit=False, border=False):
         with st.container(horizontal=True,border=False, vertical_alignment="center",key="first"):
-            p1_name = st.selectbox("Team 1", names,width=200)
-            #remaining = [n for n in names if n != p1_name]
-            #p2_name = st.selectbox("Team 2", remaining)
-            p2_name = st.selectbox("Team 2", names,width=200)
+            p1_name = st.selectbox("Team 1", names,width=200,placeholder="Team 1", index=None)
+            p2_name = st.selectbox("Team 2", names,width=200,placeholder="Team 2", index=None)
+            court = st.selectbox("Court", list(range(1,10)), width=100,placeholder="Court", index=None)
             st.space("stretch")
-            court = st.selectbox("Court", list(range(1,10)), width=100)
-        with st.container(horizontal=True,border=False, vertical_alignment="center",key="second"):
-            st.space("stretch")
-            submit = st.form_submit_button("Add Match")
-            st.space("stretch")
-            if submit:
+            submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
+        if submit:                
+            if team_klasse[p1_name]==team_klasse[p2_name]:
                 c.execute("""
-                    INSERT INTO matches (player1_id, player2_id, court)
-                    VALUES (?, ?, ?)
-                """, (team_dict[p1_name], team_dict[p2_name], court))
+                    INSERT INTO matches (player1_id, player2_id, court, match_class)
+                    VALUES (?, ?, ?, ?)
+                """, (team_dict[p1_name], team_dict[p2_name], court, team_klasse[p1_name]))
                 conn.commit()
                 st.success("Match added")
                 st.rerun()
+            else:
+                st.warning("Nicht in der gleichen Gruppe.")
+            
+                    
 
 # =========================================================
 # MATCH LIST
@@ -233,27 +241,24 @@ if st.session_state.selected_match is None:
         if visible or st.session_state.admin:    
             name1 = get_team_name(p1)
             name2 = get_team_name(p2)
-
-            col1, col2, col3 = st.columns([5,1,1])
-
-            with col1:
-                if st.button(f"\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0Court {court}:\u00A0\u00A0\u00A0***{name1}*** vs ***{name2}***", key=f"open_{mid}",width=300,):
+            with st.container(horizontal=True,border=False, vertical_alignment="center"):
+                st.markdown(f"On Court {court}:")
+                if st.button(f"***{name1}*** vs ***{name2}***", key=f"open_{mid}",width=350,):
                     st.session_state.selected_match = mid
                     st.rerun()
-            with col2:
+                st.space("stretch")
                 if st.session_state.admin and visible:
-                    if st.button(f"🔓", key=f"vis_match_{mid}"):
+                    if st.button(":material/Visibility_Off:", key=f"vis_match_{mid}"):
                         c.execute("UPDATE matches SET is_visible=? WHERE id=?", (0,mid))
                         conn.commit()
                         st.rerun()
                 elif st.session_state.admin and not visible:
-                    if st.button(f"🔐", key=f"vis_match_{mid}"):
+                    if st.button(":material/Visibility:", key=f"vis_match_{mid}"):
                         c.execute("UPDATE matches SET is_visible=? WHERE id=?", (1,mid))
                         conn.commit()
                         st.rerun()
-            with col3:
                 if st.session_state.admin:
-                    if st.button("🗑️", key=f"del_match_{mid}"):
+                    if st.button(":material/Delete:", key=f"del_match_{mid}"):
                         c.execute("DELETE FROM matches WHERE id=?", (mid,))
                         conn.commit()
 
@@ -275,58 +280,87 @@ else:
 
     (_, p1, p2, court,
      s1p1, s1p2, s2p1, s2p2, s3p1, s3p2,
-     last_updated,is_visible, _) = m
+     last_updated,is_visible, klasse, _) = m
 
     name1 = get_team_name(p1)
     name2 = get_team_name(p2)
 
     st.subheader(f"***{name1}*** vs ***{name2}***",anchor=False)
-
-    if st.button("⬅ Back"):
-        st.session_state.selected_match = None
-        st.rerun()
+    with st.container(horizontal=True):
+        st.space("stretch")
+        if st.button(":material/undo: Back",width=100):
+            st.session_state.selected_match = None
+            st.rerun()
 
     is_locked = last_updated is not None and not st.session_state.admin
+    with st.container(horizontal=True):
+        st.space("stretch")
+        with st.form("result_form", width=700):
+            with st.container(horizontal=True):
+                # --- SET 1 ---
+                with st.container():
+                    with st.container(horizontal=True,width=300):
+                        st.space("stretch")
+                        st.markdown("1. Set",text_alignment="center")
+                        st.space("stretch")
+                    with st.container(horizontal=True,width=300):
+                        st.space("stretch")
+                        s1a = parse_score(st.text_input(
+                            "Set1 Team1",width=50,label_visibility="collapsed",
+                            value=str(s1p1) if s1p1 is not None else ""
+                        ))
+                        st.markdown(":",text_alignment="center")
+                        s1b = parse_score(st.text_input(
+                            "Set1 Team2",width=50,label_visibility="collapsed",
+                            value=str(s1p2) if s1p2 is not None else ""
+                        ))
+                        st.space("stretch")
 
-    if is_locked:
-        st.warning("Result submitted.")
+                # --- SET 2 ---
+                with st.container():
+                    with st.container(horizontal=True,width=300):
+                        st.space("stretch")
+                        st.markdown("2. Set",text_alignment="center")
+                        st.space("stretch")
+                    with st.container(horizontal=True,width=300):
+                        st.space("stretch")
+                        s2a = parse_score(st.text_input(
+                            "Set2 Team1",width=50,label_visibility="collapsed",
+                            value=str(s2p1) if s2p1 is not None else ""
+                        ))
+                        st.markdown(":",text_alignment="center")
+                        s2b = parse_score(st.text_input(
+                            "Set2 Team2",width=50,label_visibility="collapsed",
+                            value=str(s2p2) if s2p2 is not None else ""
+                        ))
+                        st.space("stretch")
 
-    with st.form("result_form"):
-        # --- SET 1 ---
-        s1a = parse_score(st.text_input(
-            "Set1 Team1",
-            value=str(s1p1) if s1p1 is not None else ""
-        ))
-        s1b = parse_score(st.text_input(
-            "Set1 Team2",
-            value=str(s1p2) if s1p2 is not None else ""
-        ))
+                # --- SET 3 ---
+                with st.container():
+                    with st.container(horizontal=True,width=300):
+                        st.space("stretch")
+                        st.markdown("3. Set",text_alignment="center")
+                        st.space("stretch")
+                    with st.container(horizontal=True,width=300):
+                        st.space("stretch")
+                        s3a_raw = st.text_input(
+                            "Set3 Team1",width=50,label_visibility="collapsed",
+                            value=str(s3p1) if s3p1 is not None else ""
+                        )
+                        st.markdown(":",text_alignment="center")
+                        s3b_raw = st.text_input(
+                            "Set3 Team2",width=50,label_visibility="collapsed",
+                            value=str(s3p2) if s3p2 is not None else ""
+                        )
+                        st.space("stretch")
 
-        # --- SET 2 ---
-        s2a = parse_score(st.text_input(
-            "Set2 Team1",
-            value=str(s2p1) if s2p1 is not None else ""
-        ))
-        s2b = parse_score(st.text_input(
-            "Set2 Team2",
-            value=str(s2p2) if s2p2 is not None else ""
-        ))
-
-        # --- SET 3 ---
-        s3a_raw = st.text_input(
-            "Set3 Team1",
-            value=str(s3p1) if s3p1 is not None else ""
-        )
-        s3b_raw = st.text_input(
-            "Set3 Team2",
-            value=str(s3p2) if s3p2 is not None else ""
-        )
-
-        s3a = parse_score(s3a_raw)
-        s3b = parse_score(s3b_raw)
-
-        submit = st.form_submit_button("Submit", disabled=is_locked)
-
+            s3a = parse_score(s3a_raw)
+            s3b = parse_score(s3b_raw)
+            with st.container(horizontal=True):
+                st.space("stretch")
+                submit = st.form_submit_button("Verbindlich abgeben", disabled=is_locked,width=200)
+                st.space("stretch")
+        st.space("stretch")
         if submit:
 
             # --- detect if set 3 was played ---
@@ -352,7 +386,12 @@ else:
 
             st.success("Saved")
             st.rerun()
+    with st.container(horizontal=True):
+        st.space("stretch")
+        if is_locked:
+                st.warning("Ergebnisse abgegeben.",width=200)
+        st.space("stretch")
 with st.container(horizontal=True):
     st.space("stretch")
-    if st.button("Reload"):
+    if st.button(":material/refresh: Reload",width=100):
         st.rerun()
