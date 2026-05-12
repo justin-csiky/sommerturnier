@@ -88,7 +88,7 @@ if "selected_match" not in st.session_state:
 if "stt" not in st.session_state:
     st.session_state.stt = False  
 
-st.title("Sommerturnier - V1.2",anchor=False)
+st.title("Sommerturnier - V1.2.2",anchor=False)
 
 # --- HELPERS ---
 def parse_score(v):
@@ -243,9 +243,9 @@ if st.session_state.admin and st.session_state.selected_match is None:
         if submit:                
             if team_klasse[p1_name]==team_klasse[p2_name]:
                 c.execute("""
-                    INSERT INTO matches (player1_id, player2_id, court, match_class)
-                    VALUES (?, ?, ?, ?)
-                """, (team_dict[p1_name], team_dict[p2_name], court, team_klasse[p1_name]))
+                    INSERT INTO matches (player1_id, player2_id, court, is_visible, match_class)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (team_dict[p1_name], team_dict[p2_name], court,0 ,team_klasse[p1_name]))
                 conn.commit()
                 st.success("Match added")
                 st.rerun()
