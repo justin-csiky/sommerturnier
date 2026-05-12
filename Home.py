@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS matches (
     s3_p2 INTEGER,
     last_updated TIMESTAMP,
     is_new INTEGER DEFAULT 0,
-    is_visible INTEGER DEFAULT 0,
+    is_visible INTEGER DEFAULT 1,
     match_class TEXT
 )
 """)
