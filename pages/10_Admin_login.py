@@ -10,8 +10,25 @@ st.markdown("""
     [data-testid="appCreatorAvatar"] {display: none;}
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+    /* Hide bottom-right floating button */
+    button[kind="header"] {
+        visibility: hidden;
+    }
+
+    /* Extra fallback selectors */
+    [data-testid="stStatusWidget"] {
+        display: none;
+    }
+
+    .stDeployButton {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
 state_change = "admin123"
-st.header("Admin Login",anchor=False)
+st.subheader("Admin Login",anchor=False)
 if not st.session_state.admin:
     input = st.text_input("Password", type="password",width=300)
     if st.button(":material/login: Login",width=100):

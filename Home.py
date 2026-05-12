@@ -35,11 +35,8 @@ home=st.Page("./Home.py",title="Home",icon=":material/dashboard:")
 admin=st.Page("./pages/10_Admin_login.py",title="Admin",icon=":material/admin_panel_settings:")
 
 # --- DATABASE SETUP ---
-conn = sqlite3.connect("matches.db", check_same_thread=False)
+conn = sqlite3.connect("data.db", check_same_thread=False)
 c = conn.cursor()
-
-stats = sqlite3.connect("teamstats.db", check_same_thread=False)
-s = stats.cursor()
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS matches (
@@ -56,11 +53,11 @@ CREATE TABLE IF NOT EXISTS matches (
     last_updated TIMESTAMP,
     is_new INTEGER DEFAULT 0,
     is_visible INTEGER DEFAULT 0,
-    match_class STRING
+    match_class TEXT
 )
 """)
-
-s.execute("""
+conn.commit()
+c.execute("""
 CREATE TABLE IF NOT EXISTS teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
@@ -68,22 +65,30 @@ CREATE TABLE IF NOT EXISTS teams (
     loses INTEGER,
     wpoints INTEGER,
     lpoints INTEGER,
-    class STRING
+    class TEXT,
+    team_group TEXT,
+    group_placement INTEGER
 )
 """)
-
 conn.commit()
-stats.commit()
-
+c.execute("""
+CREATE TABLE IF NOT EXISTS groups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    class TEXT,
+    group_name TEXT,
+    is_done INTEGER DEFAULT 0
+)
+""")
+conn.commit()
 # --- SESSION STATE ---
 if "admin" not in st.session_state:
     st.session_state.admin = False
 if "selected_match" not in st.session_state:
     st.session_state.selected_match = None
 if "stt" not in st.session_state:
-    st.session_state.stt = False
+    st.session_state.stt = False  
 
-st.title("Sommerturnier - V1.1.2",anchor=False)
+st.title("Sommerturnier - V1.2",anchor=False)
 
 # --- HELPERS ---
 def parse_score(v):
@@ -96,13 +101,12 @@ def display_value(x):
     return "" if x is None else str(x)
 
 def get_team_name(team_id):
-    res = s.execute("SELECT name FROM teams WHERE id=?", (team_id,)).fetchone()
+    res = c.execute("SELECT name FROM teams WHERE id=?", (team_id,)).fetchone()
     return res[0] if res else "Unknown"
 
 # --- RECOMPUTE STATS ---
 def recompute_team_stats():
-    s.execute("UPDATE teams SET wins=0, loses=0, wpoints=0, lpoints=0")
-    stats.commit()
+    c.execute("UPDATE teams SET wins=0, loses=0, wpoints=0, lpoints=0")
 
     matches = c.execute("""
         SELECT player1_id, player2_id,
@@ -129,18 +133,18 @@ def recompute_team_stats():
                 sets2 += 1
 
         if sets1 > sets2:
-            s.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p1,))
-            s.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p2,))
+            c.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p1,))
+            c.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p2,))
         else:
-            s.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p2,))
-            s.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p1,))
+            c.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p2,))
+            c.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p1,))
 
-        s.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets1, p1))
-        s.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets2, p1))
-        s.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets2, p2))
-        s.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets1, p2))
+        c.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets1, p1))
+        c.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets2, p1))
+        c.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets2, p2))
+        c.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets1, p2))
 
-    stats.commit()
+    conn.commit()
 
 # =========================================================
 # ADMIN PANEL
@@ -152,29 +156,41 @@ if st.session_state.admin and st.session_state.selected_match is None:
     with st.form("add_team", clear_on_submit=True,border=False):
         with st.container(horizontal=True):
             name = st.text_input("Team Name",width=200,label_visibility="collapsed",placeholder="Team Name")
-            klasse = st.selectbox("Klasse", ["MX","HD","DD","LVL1/2"],width=200, label_visibility="collapsed", placeholder="Klasse", index=None)
+            klasse = st.selectbox("Klasse", ["MX","HD","DD","LVL1/2"],width=100, label_visibility="collapsed", placeholder="Klasse", index=None)
+            gruppe = st.selectbox("Klasse", ["A","B","C","D"],width=100, label_visibility="collapsed", placeholder="Gruppe", index=None)
             st.space("stretch")
             submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
         if submit:
             if not name:
                 st.error("Enter name")
             else:
-                exists = s.execute("SELECT id FROM teams WHERE name=?", (name,)).fetchone()
+                exists = c.execute("SELECT id FROM teams WHERE name=?", (name,)).fetchone()
                 if exists:
                     st.error("Team exists")
                 else:
-                    s.execute("""
-                        INSERT INTO teams (name, wins, loses, wpoints, lpoints, class)
-                        VALUES (?,0,0,0,0,?)
-                    """, (name,klasse))
-                    stats.commit()
+                    c.execute("""
+                        INSERT INTO teams (name, wins, loses, wpoints, lpoints, class, team_group)
+                        VALUES (?,0,0,0,0,?,?)
+                    """, (name,klasse,gruppe))
+                    conn.commit()
+                    groupcheck = c.execute("SELECT group_name FROM groups WHERE class=?", (klasse,)).fetchall()
+                    checkbit=False
+                    for names in groupcheck:
+                        if names[0]==gruppe:
+                            checkbit=True
+                    if not checkbit:
+                        c.execute("""
+                            INSERT INTO groups (class, group_name, is_done)
+                            VALUES (?,?,?)
+                        """, (klasse,gruppe,0))
+                        conn.commit()
                     st.success("Team added")
                     st.rerun()
     st.divider()
 
     st.subheader(":material/Delete: Delete Team", anchor=False)
 
-    teams = s.execute("SELECT id, name FROM teams").fetchall()
+    teams = c.execute("SELECT id, name FROM teams").fetchall()
 
     team_names = [t[1] for t in teams]
     team_dict = {t[1]: t[0] for t in teams}
@@ -199,24 +215,20 @@ if st.session_state.admin and st.session_state.selected_match is None:
                         DELETE FROM matches
                         WHERE player1_id=? OR player2_id=?
                     """, (team_id, team_id))
+                    c.execute("DELETE FROM teams WHERE id=?", (team_id,))
                     conn.commit()
-
-                    s.execute("DELETE FROM teams WHERE id=?", (team_id,))
-                    stats.commit()
-
                     recompute_team_stats()
-
                     st.success("Team and related matches deleted")
                     st.rerun()
             else:
-                s.execute("DELETE FROM teams WHERE id=?", (team_id,))
-                stats.commit()
+                c.execute("DELETE FROM teams WHERE id=?", (team_id,))
+                conn.commit()
                 st.success("Team deleted")
                 st.rerun()
     st.divider()
     st.subheader(":material/Add_2: Add Match", anchor=False)
 
-    teams = s.execute("SELECT id, name, class FROM teams").fetchall()
+    teams = c.execute("SELECT id, name, class FROM teams").fetchall()
     team_dict = {name: tid for tid, name, klasse in teams}
     team_klasse = {name: klasse for tid, name, klasse in teams}
     names = list(team_dict.keys())
