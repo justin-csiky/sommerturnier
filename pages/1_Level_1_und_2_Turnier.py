@@ -165,71 +165,151 @@ with tab2:
     else:
         st.markdown("Gruppenphase läuft noch...")
 with tab3:
-    semi1_team2 = "Shuttlestars"
-    semi1_team1 = "Bla Bla"
-    semi2_team1 = "Net Ninjas"
-    semi2_team2 = "Smash Bros"
+    semi1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','A', 1)).fetchone()
+    semi1_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','C', 1)).fetchone()
+    semi2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','B', 1)).fetchone()
+    semi2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','D', 1)).fetchone()
 
     finalist1 = "Falcons"
     finalist2 = "Smash Bros"
-
+    winner= "---"
+    winner2= "---"
     champion = "Falcons"
-
-    # =========================
-    # TITLE
-    # =========================
-    st.markdown('<div class="bracket-title">🏆 Knockout Stage</div>', unsafe_allow_html=True)
 
     # =========================
     # BRACKET LAYOUT
     # =========================
-    col1, col2, col3, col4, col5 = st.columns([4,1,4,1,4])
+    col1, col2 = st.columns([4,2])
 
     # -------------------------
     # SEMI FINALS
     # -------------------------
-    with col1:
-        st.markdown("### Semi Finals")
+    # with col1:
+        # st.markdown("### Semi Finals")
 
-        st.markdown(f'<div class="bracket-team">{semi1_team1}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="bracket-team">{semi1_team2}</div>', unsafe_allow_html=True)
+        # st.markdown(f'<div class="bracket-team">{semi1_team1[1]}</div>', unsafe_allow_html=True)
+        # st.markdown('<div style="height:30px"></div>', unsafe_allow_html=True)
+        # st.markdown(f'<div class="bracket-team">{semi1_team2[1]}</div>', unsafe_allow_html=True)
 
-        st.markdown('<div style="height:70px"></div>', unsafe_allow_html=True)
+        # st.markdown('<div style="height:70px"></div>', unsafe_allow_html=True)
 
-        st.markdown(f'<div class="bracket-team">{semi2_team1}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="bracket-team">{semi2_team2}</div>', unsafe_allow_html=True)
+        # st.markdown(f'<div class="bracket-team">{semi2_team1[1]}</div>', unsafe_allow_html=True)
+        # st.markdown(f'<div class="bracket-team">{semi2_team2[1]}</div>', unsafe_allow_html=True)
 
     # -------------------------
     # CONNECTORS
     # -------------------------
-    with col2:
-        st.markdown('<div class="connector"></div>', unsafe_allow_html=True)
-        st.markdown('<div style="height:90px"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="connector"></div>', unsafe_allow_html=True)
-
-    # -------------------------
-    # FINALS
-    # -------------------------
-    with col3:
-        st.markdown("### Finals")
-
-        st.markdown('<div style="height:55px"></div>', unsafe_allow_html=True)
-
-        st.markdown(f'<div class="bracket-team">{finalist1}</div>', unsafe_allow_html=True)
-
-        st.markdown('<div style="height:120px"></div>', unsafe_allow_html=True)
-
-        st.markdown(f'<div class="bracket-team">{finalist2}</div>', unsafe_allow_html=True)
-
-    # -------------------------
-    # FINAL CONNECTOR
-    # -------------------------
-    with col4:
-        st.markdown('<div class="final-connector"></div>', unsafe_allow_html=True)
-
-    # -------------------------
-    # CHAMPION
-    # -------------------------
-    with col5:
-        st.markdown("### Winner")
-        st.markdown(f'<div class="champion">🏆<br>{champion}</div>', unsafe_allow_html=True)
+    with col1:
+        st.markdown(f"""
+            <style>
+            .bracket-row {{
+                display: flex;
+                align-items: center;
+                gap: 0px;
+                margin-bottom: 30px;
+            }}
+            .team-column {{
+                display: flex;
+                flex-direction: column;
+                gap: 40px;
+            }}
+            .team-column2 {{
+                display: flex;
+                left: 10px;
+                flex-direction: column;
+                gap: 182px;
+            }}
+            .team-box {{
+                background: #262730;
+                padding: 12px 20px;
+                border-radius: 10px;
+                width: 150px;
+                text-align: center;
+                font-weight: bold;
+            }}
+            .connector {{
+                position: relative;
+                width: 50px;
+                height: 400px;
+            }}
+            .h-line {{
+                position: absolute;
+                left: 0;
+                height: 94px;
+                width: 20px;
+                border-top: 4px solid #888;
+                border-bottom: 4px solid #888;
+                border-right: 4px solid #888;
+            }}
+            .h-line2 {{
+                position: absolute;
+                left: 0;
+                height: 234px;
+                width: 20px;
+                border-top: 4px solid #888;
+                border-bottom: 4px solid #888;
+                border-right: 4px solid #888;
+            }}
+            .h-line.top {{
+                top: 38px;
+            }}
+            .h-line2.top {{
+                top: 82px;
+            }}
+            .h-line.bottom {{
+                top: 268px;
+            }}
+            .middle-line{{
+                position: absolute;
+                left: 20px;
+                width: 30px;
+                border-top: 4px solid #888;
+            }}
+            .middle-line2{{
+                position: absolute;
+                left: 20px;
+                width: 30px;
+                border-top: 4px solid #888;
+            }}
+            .middle-line.top{{
+                top: 82px;
+            }}
+            .middle-line2.top{{
+                top: 198px;
+            }}
+            .middle-line.bottom{{
+                top: 312px;
+            }}
+            </style>
+            <div class="bracket-row">
+                <div class="team-column">
+                    <div class="team-box">{semi1_team1[1]}</div>
+                    <div class="team-box">{semi1_team2[1]}</div>
+                    <div style="height:10px"></div>
+                    <div class="team-box">{semi2_team1[1]}</div>
+                    <div class="team-box">{semi2_team2[1]}</div>
+                </div>
+                <div class="connector">
+                    <div class="h-line top"></div>
+                    <div class="middle-line top"></div>
+                    <div class="h-line bottom"></div>
+                    <div class="middle-line bottom"></div>
+                </div>
+                <div class="team-column2">
+                    <div class="team-box">
+                        {winner}
+                    </div>
+                    <div class="team-box">
+                        {winner2}
+                    </div>
+                </div>
+                <div class="connector">
+                    <div class="h-line2 top"></div>
+                    <div class="middle-line2 top"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    with st.container(horizontal=True):
+        st.space("stretch")
+        if st.button(":material/refresh: Reload",width=100):
+            st.rerun()
