@@ -88,7 +88,7 @@ if "selected_match" not in st.session_state:
 if "stt" not in st.session_state:
     st.session_state.stt = False  
 
-st.title("Sommerturnier - V1.2.2",anchor=False)
+st.title("Sommerturnier - V1.3.1",anchor=False)
 
 # --- HELPERS ---
 def parse_score(v):
