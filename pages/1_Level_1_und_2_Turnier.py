@@ -202,6 +202,17 @@ with tab3:
     with col1:
         st.markdown(f"""
             <style>
+            .scroll-container {{
+                overflow-x: auto;
+                overflow-y: hidden;
+
+                width: 100%;
+                padding-bottom: 10px;
+            }}
+
+            .bracket-wrapper {{
+                min-width: 900px;
+            }}
             .bracket-row {{
                 display: flex;
                 align-items: center;
@@ -214,6 +225,12 @@ with tab3:
                 gap: 40px;
             }}
             .team-column2 {{
+                display: flex;
+                left: 10px;
+                flex-direction: column;
+                gap: 182px;
+            }}
+            .team-column3 {{
                 display: flex;
                 left: 10px;
                 flex-direction: column;
@@ -281,31 +298,40 @@ with tab3:
                 top: 312px;
             }}
             </style>
-            <div class="bracket-row">
-                <div class="team-column">
-                    <div class="team-box">{semi1_team1[1]}</div>
-                    <div class="team-box">{semi1_team2[1]}</div>
-                    <div style="height:10px"></div>
-                    <div class="team-box">{semi2_team1[1]}</div>
-                    <div class="team-box">{semi2_team2[1]}</div>
-                </div>
-                <div class="connector">
-                    <div class="h-line top"></div>
-                    <div class="middle-line top"></div>
-                    <div class="h-line bottom"></div>
-                    <div class="middle-line bottom"></div>
-                </div>
-                <div class="team-column2">
-                    <div class="team-box">
-                        {winner}
+            <div class="scroll-container">
+                <div class="bracket-wrapper">
+                    <div class="bracket-row">
+                        <div class="team-column">
+                            <div class="team-box">{semi1_team1[1]}</div>
+                            <div class="team-box">{semi1_team2[1]}</div>
+                            <div style="height:10px"></div>
+                            <div class="team-box">{semi2_team1[1]}</div>
+                            <div class="team-box">{semi2_team2[1]}</div>
+                        </div>
+                        <div class="connector">
+                            <div class="h-line top"></div>
+                            <div class="middle-line top"></div>
+                            <div class="h-line bottom"></div>
+                            <div class="middle-line bottom"></div>
+                        </div>
+                        <div class="team-column2">
+                            <div class="team-box">
+                                {winner}
+                            </div>
+                            <div class="team-box">
+                                {winner2}
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="h-line2 top"></div>
+                            <div class="middle-line2 top"></div>
+                        </div>
+                        <div class="team-column3">
+                            <div class="team-box">
+                                {winner}
+                            </div>
+                        </div>
                     </div>
-                    <div class="team-box">
-                        {winner2}
-                    </div>
-                </div>
-                <div class="connector">
-                    <div class="h-line2 top"></div>
-                    <div class="middle-line2 top"></div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
