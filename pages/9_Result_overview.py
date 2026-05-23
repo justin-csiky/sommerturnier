@@ -83,7 +83,7 @@ if st.session_state.stt:
 matchdb = st.expander("matchesdb", on_change="rerun")
 with matchdb:
     db = c.execute("""
-    SELECT id, player1_id, player2_id, court, s1_p1, s1_p2, s2_p1, s2_p2, s3_p1, s3_p2, last_updated, is_new, is_visible, match_class
+    SELECT id, player1_id, player2_id, court, s1_p1, s1_p2, s2_p1, s2_p2, s3_p1, s3_p2, last_updated, is_new, is_visible, match_class, stage
     FROM matches              
     """).fetchall()
     for i in db:
@@ -91,7 +91,7 @@ with matchdb:
 teamdb = st.expander("teamsdb", on_change="rerun")
 with teamdb:
     db = c.execute("""
-    SELECT id, name, wins, loses, wpoints, lpoints, class, team_group
+    SELECT id, name, wins, loses, wpoints, lpoints, class, team_group, group_placement, quaters_nr_winner, semis_nr_winner, finals_winner
     FROM teams
     """).fetchall()
     for i in db:

@@ -80,261 +80,347 @@ def finish_group(gname):
         id = i[0]
         c.execute("UPDATE teams SET group_placement=? WHERE id=?",(placement,id))
         placement+=1
-    conn.commit()  
+    conn.commit()
     return 0
+def fill_in_tbd(candidates):
+    modified=[]
+    for n in candidates:
+        if n == None:
+            a=[-1,"tbd"]
+            modified.append(a)
+        else:
+            modified.append(n)
+        
+
+
 if "admin" not in st.session_state:
     st.session_state.admin = False
 if "selected_match" not in st.session_state:
     st.session_state.selected_match = None
 if "stt" not in st.session_state:
     st.session_state.stt = False
+if "language" not in st.session_state:
+    st.session_state.language = "german"
 st.subheader("Level 1-2 Turnier", anchor=False)
-tab1, tab2, tab3, tab4 = st.tabs(["Gruppenphase", "Viertelfinale", "Halbfinale", "Finale"])
+tab1, tab2 = st.tabs(["Gruppenphase", "K/O-Phase"])
 with tab1:
-    grA = st.expander("Gruppe A", on_change="rerun",key="gruppeA")
-    with grA:
-        raw = c.execute("""
-        SELECT name, wins, loses, wpoints, lpoints, team_group
-        FROM teams WHERE class LIKE '%LVL1/2%'
-        ORDER BY wins DESC, wpoints DESC
-        """).fetchall()
-        print_table(raw,'A')
-        if st.session_state.admin:
-            with st.container(horizontal=True):
-                st.space("stretch")
-                if st.button("Gruppe abschließen",width=200,key="bt_gruppeA"):
-                    finish_group('A')   
-                st.space("stretch")
-    grB = st.expander("Gruppe B", on_change="rerun",key="gruppeB")
-    with grB:
-        raw = c.execute("""
-        SELECT name, wins, loses, wpoints, lpoints, team_group
-        FROM teams WHERE class LIKE '%LVL1/2%'
-        ORDER BY wins DESC, wpoints DESC
-        """).fetchall()
-        print_table(raw,'B')
-        if st.session_state.admin:
-            with st.container(horizontal=True):
-                st.space("stretch")
-                if st.button("Gruppe abschließen",width=200,key="bt_gruppeB"):
-                    finish_group('B')     
-                st.space("stretch")
-    grC = st.expander("Gruppe C", on_change="rerun",key="gruppeC")
-    with grC:
-        raw = c.execute("""
-        SELECT name, wins, loses, wpoints, lpoints, team_group
-        FROM teams WHERE class LIKE '%LVL1/2%'
-        ORDER BY wins DESC, wpoints DESC
-        """).fetchall()
-        print_table(raw,'C')
-        if st.session_state.admin:
-            with st.container(horizontal=True):
-                st.space("stretch")
-                if st.button("Gruppe abschließen",width=200,key="bt_gruppeC"):
-                    finish_group('C')     
-                st.space("stretch")
-    grD = st.expander("Gruppe D", on_change="rerun",key="gruppeD")
-    with grD:
-        raw = c.execute("""
-        SELECT name, wins, loses, wpoints, lpoints, team_group
-        FROM teams WHERE class LIKE '%LVL1/2%'
-        ORDER BY wins DESC, wpoints DESC
-        """).fetchall()
-        print_table(raw,'D')
-        if st.session_state.admin:
-            with st.container(horizontal=True):
-                st.space("stretch")
-                if st.button("Gruppe abschließen",width=200,key="bt_gruppeD"):
-                    finish_group('D')     
-                st.space("stretch")
+    with st.container():
+        st.space("small")
+        grA = st.expander("Gruppe A", on_change="rerun",key="gruppeA")
+        with grA:
+            raw = c.execute("""
+            SELECT name, wins, loses, wpoints, lpoints, team_group
+            FROM teams WHERE class LIKE '%LVL1/2%'
+            ORDER BY wins DESC, wpoints DESC
+            """).fetchall()
+            print_table(raw,'A')
+            if st.session_state.admin:
+                with st.container(horizontal=True):
+                    st.space("stretch")
+                    if st.button("Gruppe abschließen",width=200,key="bt_gruppeA"):
+                        finish_group('A')   
+                    st.space("stretch")
+        st.space("xxsmall")
+        grB = st.expander("Gruppe B", on_change="rerun",key="gruppeB")
+        with grB:
+            raw = c.execute("""
+            SELECT name, wins, loses, wpoints, lpoints, team_group
+            FROM teams WHERE class LIKE '%LVL1/2%'
+            ORDER BY wins DESC, wpoints DESC
+            """).fetchall()
+            print_table(raw,'B')
+            if st.session_state.admin:
+                with st.container(horizontal=True):
+                    st.space("stretch")
+                    if st.button("Gruppe abschließen",width=200,key="bt_gruppeB"):
+                        finish_group('B')     
+                    st.space("stretch")
+        st.space("xxsmall")
+        grC = st.expander("Gruppe C", on_change="rerun",key="gruppeC")
+        with grC:
+            raw = c.execute("""
+            SELECT name, wins, loses, wpoints, lpoints, team_group
+            FROM teams WHERE class LIKE '%LVL1/2%'
+            ORDER BY wins DESC, wpoints DESC
+            """).fetchall()
+            print_table(raw,'C')
+            if st.session_state.admin:
+                with st.container(horizontal=True):
+                    st.space("stretch")
+                    if st.button("Gruppe abschließen",width=200,key="bt_gruppeC"):
+                        finish_group('C')     
+                    st.space("stretch")
+        st.space("xxsmall")
+        grD = st.expander("Gruppe D", on_change="rerun",key="gruppeD")
+        with grD:
+            raw = c.execute("""
+            SELECT name, wins, loses, wpoints, lpoints, team_group
+            FROM teams WHERE class LIKE '%LVL1/2%'
+            ORDER BY wins DESC, wpoints DESC
+            """).fetchall()
+            print_table(raw,'D')
+            if st.session_state.admin:
+                with st.container(horizontal=True):
+                    st.space("stretch")
+                    if st.button("Gruppe abschließen",width=200,key="bt_gruppeD"):
+                        finish_group('D')     
+                    st.space("stretch")
 with tab2:
-    raw = c.execute("""
-        SELECT id, name, team_group, group_placement
-        FROM teams WHERE class LIKE '%LVL1/2%'
-        ORDER BY team_group ASC, group_placement ASC
-        """).fetchall()
-    team_list=[]
-    for i in raw:
-        tid, tname, tgroup, tplace = i
-        if parse_to_int(tplace)<3 and not parse_to_int(tplace)==0:
-            team_list.append(i)
-    if len(team_list)==8:
-        st.markdown("The finalists are")
-        for i in team_list:
-            st.markdown(i)
-    else:
-        st.markdown("Gruppenphase läuft noch...")
-with tab3:
-    semi1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','A', 1)).fetchone()
-    semi1_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','C', 1)).fetchone()
-    semi2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','B', 1)).fetchone()
-    semi2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','D', 1)).fetchone()
+    quaters1_team1 = [0,"tbd"]
+    quaters1_team2 = [0,"tbd"]
+    quaters2_team1 = [0,"tbd"]
+    quaters2_team2 = [0,"tbd"]
+    quaters3_team1 = [0,"tbd"]
+    quaters3_team2 = [0,"tbd"]
+    quaters4_team1 = [0,"tbd"]
+    quaters4_team2 = [0,"tbd"]
+    semi1_team1 = [0,"tbd"]
+    semi1_team2 = [0,"tbd"]
+    semi2_team1 = [0,"tbd"]
+    semi2_team2 = [0,"tbd"]
+    finals_team1 = [0,"tbd"]
+    finals_team2 = [0,"tbd"]
+    winner = [0,"tbd"]
+    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','A', 1)).fetchone():
+        quaters1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','A', 1)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','D', 2)).fetchone():
+        quaters1_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','D', 2)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','C', 1)).fetchone():
+        quaters2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','C', 1)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','B', 2)).fetchone():
+        quaters2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','B', 2)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','B', 1)).fetchone():
+        quaters3_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','B', 1)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','C', 2)).fetchone():
+        quaters3_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','C', 2)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','D', 1)).fetchone():
+        quaters4_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','D', 1)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','A', 2)).fetchone():
+        quaters4_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",('LVL1/2','A', 2)).fetchone()
 
-    finalist1 = "Falcons"
-    finalist2 = "Smash Bros"
-    winner= "---"
-    winner2= "---"
-    champion = "Falcons"
+    if c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=1",('LVL1/2',)).fetchone():
+        semi1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=1",('LVL1/2',)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=2",('LVL1/2',)).fetchone():
+        semi1_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=2",('LVL1/2',)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=3",('LVL1/2',)).fetchone():
+        semi2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=3",('LVL1/2',)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=4",('LVL1/2',)).fetchone():
+        semi2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=4",('LVL1/2',)).fetchone()
 
-    # =========================
-    # BRACKET LAYOUT
-    # =========================
-    col1, col2 = st.columns([4,2])
 
-    # -------------------------
-    # SEMI FINALS
-    # -------------------------
-    # with col1:
-        # st.markdown("### Semi Finals")
+    if c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_winner=1",('LVL1/2',)).fetchone():
+        finals_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_winner=1",('LVL1/2',)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_winner=2",('LVL1/2',)).fetchone():
+        finals_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_winner=2",('LVL1/2',)).fetchone()
+    
 
-        # st.markdown(f'<div class="bracket-team">{semi1_team1[1]}</div>', unsafe_allow_html=True)
-        # st.markdown('<div style="height:30px"></div>', unsafe_allow_html=True)
-        # st.markdown(f'<div class="bracket-team">{semi1_team2[1]}</div>', unsafe_allow_html=True)
+    if c.execute("SELECT id, name FROM teams WHERE class=? and finals_winner=1",('LVL1/2',)).fetchone():
+        winner = c.execute("SELECT id, name FROM teams WHERE class=? and finals_winner=1",('LVL1/2',)).fetchone()
+    with st.container():
+        st.space("small")
+        col1, col2 = st.columns([4,2])
+        with col1:
+            st.markdown(f"""
+                <style>
+                .scroll-container {{
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    width: 100%;
+                    padding-bottom: 10px;
+                }}
 
-        # st.markdown('<div style="height:70px"></div>', unsafe_allow_html=True)
-
-        # st.markdown(f'<div class="bracket-team">{semi2_team1[1]}</div>', unsafe_allow_html=True)
-        # st.markdown(f'<div class="bracket-team">{semi2_team2[1]}</div>', unsafe_allow_html=True)
-
-    # -------------------------
-    # CONNECTORS
-    # -------------------------
-    with col1:
-        st.markdown(f"""
-            <style>
-            .scroll-container {{
-                overflow-x: auto;
-                overflow-y: hidden;
-
-                width: 100%;
-                padding-bottom: 10px;
-            }}
-
-            .bracket-wrapper {{
-                min-width: 900px;
-            }}
-            .bracket-row {{
-                display: flex;
-                align-items: center;
-                gap: 0px;
-                margin-bottom: 30px;
-            }}
-            .team-column {{
-                display: flex;
-                flex-direction: column;
-                gap: 40px;
-            }}
-            .team-column2 {{
-                display: flex;
-                left: 10px;
-                flex-direction: column;
-                gap: 182px;
-            }}
-            .team-column3 {{
-                display: flex;
-                left: 10px;
-                flex-direction: column;
-                gap: 182px;
-            }}
-            .team-box {{
-                background: #262730;
-                padding: 12px 20px;
-                border-radius: 10px;
-                width: 150px;
-                text-align: center;
-                font-weight: bold;
-            }}
-            .connector {{
-                position: relative;
-                width: 50px;
-                height: 400px;
-            }}
-            .h-line {{
-                position: absolute;
-                left: 0;
-                height: 94px;
-                width: 20px;
-                border-top: 4px solid #888;
-                border-bottom: 4px solid #888;
-                border-right: 4px solid #888;
-            }}
-            .h-line2 {{
-                position: absolute;
-                left: 0;
-                height: 234px;
-                width: 20px;
-                border-top: 4px solid #888;
-                border-bottom: 4px solid #888;
-                border-right: 4px solid #888;
-            }}
-            .h-line.top {{
-                top: 38px;
-            }}
-            .h-line2.top {{
-                top: 82px;
-            }}
-            .h-line.bottom {{
-                top: 268px;
-            }}
-            .middle-line{{
-                position: absolute;
-                left: 20px;
-                width: 30px;
-                border-top: 4px solid #888;
-            }}
-            .middle-line2{{
-                position: absolute;
-                left: 20px;
-                width: 30px;
-                border-top: 4px solid #888;
-            }}
-            .middle-line.top{{
-                top: 82px;
-            }}
-            .middle-line2.top{{
-                top: 198px;
-            }}
-            .middle-line.bottom{{
-                top: 312px;
-            }}
-            </style>
-            <div class="scroll-container">
-                <div class="bracket-wrapper">
-                    <div class="bracket-row">
-                        <div class="team-column">
-                            <div class="team-box">{semi1_team1[1]}</div>
-                            <div class="team-box">{semi1_team2[1]}</div>
-                            <div style="height:10px"></div>
-                            <div class="team-box">{semi2_team1[1]}</div>
-                            <div class="team-box">{semi2_team2[1]}</div>
-                        </div>
-                        <div class="connector">
-                            <div class="h-line top"></div>
-                            <div class="middle-line top"></div>
-                            <div class="h-line bottom"></div>
-                            <div class="middle-line bottom"></div>
-                        </div>
-                        <div class="team-column2">
-                            <div class="team-box">
-                                {winner}
+                .bracket-wrapper {{
+                    min-width: 400px;
+                }}
+                .bracket-row {{
+                    display: flex;
+                    align-items: center;
+                    gap: 0px;
+                    margin-bottom: 30px;
+                }}
+                .team-column {{
+                    display: flex;
+                    flex-direction: column;
+                    gap: 40px;
+                }}
+                .team-column2 {{
+                    display: flex;
+                    flex-direction: column;
+                    gap: 180px;
+                }}
+                .team-column3 {{
+                    display: flex;
+                    flex-direction: column;
+                    gap: 406px;
+                }}
+                .team-box {{
+                    background: #262730;
+                    padding: 12px 20px;
+                    border-radius: 10px;
+                    width: 150px;
+                    text-align: center;
+                    font-weight: bold;
+                }}
+                .connector {{
+                    position: relative;
+                    width: 50px;
+                    height:780px;
+                }}
+                .h-lineq {{
+                    position: absolute;
+                    left: 0;
+                    height: 94px;
+                    width: 20px;
+                    border-top: 4px solid #888;
+                    border-bottom: 4px solid #888;
+                    border-right: 4px solid #888;
+                }}
+                .h-lineq.one {{
+                    top: 0px;
+                }}
+                .h-lineq.two {{
+                    top: 228px;
+                }}
+                .h-lineq.three {{
+                    top: 458px;
+                }}
+                .h-lineq.four {{
+                    top: 688px;
+                }}
+                .h-lines {{
+                    position: absolute;
+                    left: 0;
+                    height: 234px;
+                    width: 20px;
+                    border-top: 4px solid #888;
+                    border-bottom: 4px solid #888;
+                    border-right: 4px solid #888;
+                }}
+                .h-lines.top {{
+                    top: 44px;
+                }}
+                .h-lines.bot {{
+                    top: 504px;
+                }}
+                .h-linef {{
+                    position: absolute;
+                    left: 0;
+                    height: 460px;
+                    width: 20px;
+                    border-top: 4px solid #888;
+                    border-bottom: 4px solid #888;
+                    border-right: 4px solid #888;
+                }}
+                .h-linef.top {{
+                    top: 160px;
+                }}
+                .middle-lineq{{
+                    position: absolute;
+                    left: 20px;
+                    width: 30px;
+                    border-top: 4px solid #888;
+                }}
+                .middle-lineq.one{{
+                    top: 44px;
+                }}
+                .middle-lineq.two{{
+                    top: 274px;
+                }}
+                .middle-lineq.three{{
+                    top: 504px;
+                }}
+                .middle-lineq.four{{
+                    top: 734px;
+                }}
+                .middle-lines{{
+                    position: absolute;
+                    left: 20px;
+                    width: 30px;
+                    border-top: 4px solid #888;
+                }}
+                .middle-lines.top{{
+                    top: 160px;
+                }}
+                .middle-lines.bot{{
+                    top: 616px;
+                }}
+                .middle-linef{{
+                    position: absolute;
+                    left: 20px;
+                    width: 30px;
+                    border-top: 4px solid #888;
+                }}
+                .middle-linef.top{{
+                    top: 388px;
+                }}
+                </style>
+                <div class="scroll-container">
+                    <div class="bracket-wrapper">
+                        <div class="bracket-row">
+                            <div class="team-column">
+                                <div class="team-box">{quaters1_team1[1]}</div>
+                                <div class="team-box">{quaters1_team2[1]}</div>
+                                <div style="height:10px"></div>
+                                <div class="team-box">{quaters2_team1[1]}</div>
+                                <div class="team-box">{quaters2_team2[1]}</div>
+                                <div style="height:10px"></div>
+                                <div class="team-box">{quaters3_team1[1]}</div>
+                                <div class="team-box">{quaters3_team2[1]}</div>
+                                <div style="height:10px"></div>
+                                <div class="team-box">{quaters4_team1[1]}</div>
+                                <div class="team-box">{quaters4_team2[1]}</div>
                             </div>
-                            <div class="team-box">
-                                {winner2}
+                            <div class="connector">
+                                <div class="h-lineq one"></div>
+                                <div class="middle-lineq one"></div>
+                                <div class="h-lineq two"></div>
+                                <div class="middle-lineq two"></div>
+                                <div class="h-lineq three"></div>
+                                <div class="middle-lineq three"></div>
+                                <div class="h-lineq four"></div>
+                                <div class="middle-lineq four"></div>
                             </div>
-                        </div>
-                        <div class="connector">
-                            <div class="h-line2 top"></div>
-                            <div class="middle-line2 top"></div>
-                        </div>
-                        <div class="team-column3">
-                            <div class="team-box">
-                                {winner}
+                            <div class="team-column2">
+                                <div class="team-box top">
+                                    {semi1_team1[1]}
+                                </div>
+                                <div class="team-box">
+                                    {semi1_team2[1]}
+                                </div>
+                                <div class="team-box">
+                                    {semi2_team1[1]}
+                                </div>
+                                <div class="team-box">
+                                    {semi2_team2[1]}
+                                </div>
+                            </div>
+                            <div class="connector">
+                                <div class="h-lines top"></div>
+                                <div class="middle-lines top"></div>
+                                <div class="h-lines bot"></div>
+                                <div class="middle-lines bot"></div>
+                            </div>
+                            <div class="team-column3">
+                                <div class="team-box">
+                                    {finals_team1[1]}
+                                </div>
+                                <div class="team-box">
+                                    {finals_team2[1]}
+                                </div>
+                            </div>
+                            <div class="connector">
+                                <div class="h-linef top"></div>
+                                <div class="middle-linef top"></div>
+                            </div>
+                            <div class="team-column4">
+                                <div class="team-box">
+                                    {winner[1]}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
     with st.container(horizontal=True):
         st.space("stretch")
         if st.button(":material/refresh: Reload",width=100):

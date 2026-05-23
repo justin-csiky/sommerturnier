@@ -7,6 +7,8 @@ if "selected_match" not in st.session_state:
     st.session_state.selected_match = None
 if "stt" not in st.session_state:
     st.session_state.stt = False
+if "language" not in st.session_state:
+    st.session_state.language = "german"
 conn = sqlite3.connect("data.db",check_same_thread=False)
 c = conn.cursor()
 # --- HELPERS ---
@@ -54,9 +56,11 @@ def recompute_team_stats():
         if sets1 > sets2:
             c.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p1,))
             c.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p2,))
+            winner=p1
         else:
             c.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p2,))
             c.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p1,))
+            winner=p2
 
         c.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets1, p1))
         c.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets2, p1))
@@ -64,6 +68,7 @@ def recompute_team_stats():
         c.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets1, p2))
 
     conn.commit()
+    return winner
 
 if st.session_state.admin and st.session_state.selected_match is None:
 
@@ -72,7 +77,7 @@ if st.session_state.admin and st.session_state.selected_match is None:
     with st.form("add_team", clear_on_submit=True,border=False):
         with st.container(horizontal=True):
             name = st.text_input("Team Name",width=200,label_visibility="collapsed",placeholder="Team Name")
-            klasse = st.selectbox("Klasse", ["MX","HD","DD","LVL1/2"],width=100, label_visibility="collapsed", placeholder="Klasse", index=None)
+            klasse = st.selectbox("Klasse", ["MX","HD","DD","LVL1/2"],width=150, label_visibility="collapsed", placeholder="Klasse", index=None)
             gruppe = st.selectbox("Klasse", ["A","B","C","D"],width=100, label_visibility="collapsed", placeholder="Gruppe", index=None)
             st.space("stretch")
             submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
@@ -85,8 +90,8 @@ if st.session_state.admin and st.session_state.selected_match is None:
                     st.error("Team exists")
                 else:
                     c.execute("""
-                        INSERT INTO teams (name, wins, loses, wpoints, lpoints, class, team_group)
-                        VALUES (?,0,0,0,0,?,?)
+                        INSERT INTO teams (name, wins, loses, wpoints, lpoints, class, team_group, quaters_nr_winner, semis_nr_winner, finals_winner)
+                        VALUES (?,0,0,0,0,?,?,0,0,0)
                     """, (name,klasse,gruppe))
                     conn.commit()
                     groupcheck = c.execute("SELECT group_name FROM groups WHERE class=?", (klasse,)).fetchall()
@@ -151,22 +156,23 @@ if st.session_state.admin and st.session_state.selected_match is None:
 
     with st.form("add_match", clear_on_submit=False, border=False):
         with st.container(horizontal=True,border=False, vertical_alignment="center",key="first"):
-            p1_name = st.selectbox("Team 1", names,width=200,placeholder="Team 1", index=None)
-            p2_name = st.selectbox("Team 2", names,width=200,placeholder="Team 2", index=None)
-            court = st.selectbox("Court", list(range(1,10)), width=100,placeholder="Court", index=None)
+            p1_name = st.selectbox("Team 1", names,width=200,placeholder="Team 1",label_visibility="collapsed", index=None)
+            p2_name = st.selectbox("Team 2", names,width=200,placeholder="Team 2",label_visibility="collapsed", index=None)
+            stage_name = st.selectbox("Stage", ["Bracket","Quaters", "Semis", "Final"], width=150,label_visibility="collapsed",placeholder="Stage", index=None)
+            court = st.selectbox("Court", list(range(1,10)), width=100,placeholder="Court",label_visibility="collapsed", index=None)
             st.space("stretch")
             submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
         if submit:                
             if team_klasse[p1_name]==team_klasse[p2_name]:
                 c.execute("""
-                    INSERT INTO matches (player1_id, player2_id, court, is_visible, match_class)
-                    VALUES (?, ?, ?, ?, ?)
-                """, (team_dict[p1_name], team_dict[p2_name], court,0 ,team_klasse[p1_name]))
+                    INSERT INTO matches (player1_id, player2_id, court, is_visible, match_class, stage)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (team_dict[p1_name], team_dict[p2_name], court,0 ,team_klasse[p1_name], stage_name))
                 conn.commit()
                 st.success("Match added")
                 st.rerun()
             else:
-                st.warning("Nicht in der gleichen Gruppe.")
+                st.warning("Nicht in der gleichen Klasse.")
             
                     
 
@@ -226,7 +232,7 @@ else:
 
     (_, p1, p2, court,
      s1p1, s1p2, s2p1, s2p2, s3p1, s3p2,
-     last_updated,is_visible, klasse, _) = m
+     last_updated, _, is_visible, klasse, stage_name) = m
 
     name1 = get_team_name(p1)
     name2 = get_team_name(p2)
@@ -328,8 +334,38 @@ else:
 
             conn.commit()
 
-            recompute_team_stats()
-
+            winner_id = recompute_team_stats()
+            if stage_name == 'Quaters':
+                winner = c.execute("SELECT team_group, group_placement FROM teams WHERE id=?",(winner_id,)).fetchone()
+                winner_group, winner_placement = winner
+                if winner_group=='A' and winner_placement ==1:
+                    c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
+                if winner_group=='A' and winner_placement ==2:
+                    c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
+                if winner_group=='B' and winner_placement ==1:
+                    c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
+                if winner_group=='B' and winner_placement ==2:
+                    c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
+                if winner_group=='C' and winner_placement ==1:
+                    c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
+                if winner_group=='C' and winner_placement ==2:
+                    c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
+                if winner_group=='D' and winner_placement ==1:
+                    c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
+                if winner_group=='D' and winner_placement ==2:
+                    c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
+                conn.commit()
+            if stage_name == 'Semis':
+                winner = c.execute("SELECT name, quaters_nr_winner FROM teams WHERE id=?",(winner_id,)).fetchone()
+                winner_name, winner_quaters = winner
+                if winner_quaters==1 or winner_quaters ==2:
+                    c.execute("UPDATE teams SET semis_nr_winner=1 WHERE id=?",(winner_id,))
+                if winner_quaters==3 or winner_quaters ==4:
+                    c.execute("UPDATE teams SET semis_nr_winner=2 WHERE id=?",(winner_id,))
+                conn.commit()
+            if stage_name=='Final':
+                c.execute("UPDATE teams SET finals_winner=1 WHERE id=?",(winner_id,))
+                conn.commit()
             st.success("Saved")
             st.rerun()
     with st.container(horizontal=True):

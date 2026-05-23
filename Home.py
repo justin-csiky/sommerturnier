@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS matches (
     last_updated TIMESTAMP,
     is_new INTEGER DEFAULT 0,
     is_visible INTEGER DEFAULT 1,
-    match_class TEXT
+    match_class TEXT,
+    stage TEXT
 )
 """)
 conn.commit()
@@ -67,7 +68,10 @@ CREATE TABLE IF NOT EXISTS teams (
     lpoints INTEGER,
     class TEXT,
     team_group TEXT,
-    group_placement INTEGER
+    group_placement INTEGER DEFAULT 0,
+    quaters_nr_winner INTEGER DEFAULT 0,
+    semis_nr_winner INTEGER DEFAULT 0,
+    finals_winner INTEGER DEFAULT 0
 )
 """)
 conn.commit()
@@ -99,7 +103,7 @@ with st.container(horizontal=True):
         st.session_state.language="english"
         st.rerun()
     st.space("stretch")
-st.title("Sommerturnier - V1.4.1",anchor=False)
+st.title("Sommerturnier - V1.5.1",anchor=False)
 st.html("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>")
 with st.container(border=True,width=700):
     if st.session_state.language == "english":
