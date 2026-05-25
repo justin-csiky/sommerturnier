@@ -103,9 +103,9 @@ with st.container(horizontal=True):
         st.session_state.language="english"
         st.rerun()
     st.space("stretch")
-st.title("Sommerturnier - V1.5.1",anchor=False)
+st.title("Sommerturnier - V1.6.1",anchor=False)
 st.html("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>")
-with st.container(border=True,width=700):
+with st.container(border=True,width=1000):
     if st.session_state.language == "english":
         st.markdown('''<div>
                             <h3>

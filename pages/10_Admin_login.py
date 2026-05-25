@@ -30,7 +30,7 @@ st.markdown("""
 state_change = "admin123"
 st.subheader("Admin Login",anchor=False)
 if not st.session_state.admin:
-    input = st.text_input("Password", type="password",width=300)
+    input = st.text_input("Password", type="password",label_visibility="collapsed",width=300)
     if st.button(":material/login: Login",width=100):
         if input == state_change:
             st.session_state.admin = True
