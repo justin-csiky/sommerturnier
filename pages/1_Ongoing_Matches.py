@@ -9,6 +9,32 @@ if "stt" not in st.session_state:
     st.session_state.stt = False
 if "language" not in st.session_state:
     st.session_state.language = "german"
+st.markdown("""
+<style>
+    [data-testid="stMainMenu"] {display: none;}
+    [data-testid="stToolbarActions"] {display: none;}
+    [data-testid="appCreatorAvatar"] {display: none;}
+    [data-testid="manage-app-button"] {display: none;}
+    footer {display: none;}
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""
+<style>
+    /* Hide bottom-right floating button */
+    button[kind="header"] {
+        visibility: hidden;
+    }
+
+    /* Extra fallback selectors */
+    [data-testid="stStatusWidget"] {
+        display: none;
+    }
+
+    .stDeployButton {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
 conn = sqlite3.connect("data.db",check_same_thread=False)
 c = conn.cursor()
 # --- HELPERS ---
@@ -195,9 +221,12 @@ if st.session_state.selected_match is None:
             name2 = get_team_name(p2)
             with st.container(horizontal=True,border=False, vertical_alignment="center"):
                 st.markdown(f"On Court {court}:")
-                if st.button(f"***{name1}*** vs ***{name2}***", key=f"open_{mid}",width=350,):
-                    st.session_state.selected_match = mid
-                    st.rerun()
+                if st.session_state.admin:
+                    if st.button(f"***{name1}*** vs ***{name2}***", key=f"open_{mid}",width=350,):
+                        st.session_state.selected_match = mid
+                        st.rerun()
+                else:
+                    st.button(f"***{name1}*** vs ***{name2}***", key=f"open_{mid}",width=350,disabled=True)
                 st.space("stretch")
                 if st.session_state.admin and visible:
                     if st.button(":material/Visibility_Off:", key=f"vis_match_{mid}"):

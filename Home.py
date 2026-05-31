@@ -83,7 +83,23 @@ CREATE TABLE IF NOT EXISTS groups (
     is_done INTEGER DEFAULT 0
 )
 """)
+c.execute("""
+CREATE TABLE IF NOT EXISTS settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    class TEXT,
+    group_number INTEGER DEFAULT 4         
+)
+""")
 conn.commit()
+settings = c.execute("SELECT id, group_number FROM settings").fetchall()
+number=c.execute("SELECT Count(id) FROM settings").fetchall()
+if not number[0][0]==4:
+    c.execute("DELETE FROM settings")
+    c.execute("INSERT INTO settings (class) VALUES (?)",('LVL1/2',))
+    c.execute("INSERT INTO settings (class) VALUES (?)",('MX',))
+    c.execute("INSERT INTO settings (class) VALUES (?)",('DD',))
+    c.execute("INSERT INTO settings (class) VALUES (?)",('HD',))
+    conn.commit()
 # --- SESSION STATE ---
 if "admin" not in st.session_state:
     st.session_state.admin = False
@@ -103,7 +119,7 @@ with st.container(horizontal=True):
         st.session_state.language="english"
         st.rerun()
     st.space("stretch")
-st.title("Sommerturnier - V1.6.1",anchor=False)
+st.title("Sommerturnier - V1.7.1",anchor=False)
 st.html("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>")
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":

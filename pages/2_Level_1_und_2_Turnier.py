@@ -409,6 +409,7 @@ if "stt" not in st.session_state:
 if "language" not in st.session_state:
     st.session_state.language = "german"
 st.subheader("Level 1-2 Turnier", anchor=False)
+settings= c.execute("SELECT id, group_number FROM settings WHERE class =?",('LVL1/2',)).fetchall()
 if st.session_state.admin:
     tab1,tab2,tab3=st.tabs(["Gruppenphase", "K/O-Phase","Einstellungen"])
     with tab1:
@@ -477,24 +478,25 @@ if st.session_state.admin:
                                 finish_group('C')
                         st.space("stretch")
                 st.space("xxsmall")
-                grD = st.expander("Gruppe D", on_change="rerun",key="ad_gruppeD")
-                with grD:
-                    raw = c.execute("""
-                    SELECT name, wins, loses, wpoints, lpoints, team_group
-                    FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, wpoints DESC
-                    """).fetchall()
-                    print_table_alt(raw,'D')
-                    st.space("xsmall")
-                    with st.container(horizontal=True):
-                        st.space("stretch")
-                        if c.execute("SELECT id, class FROM groups WHERE is_done=0 and class='LVL1/2' and group_name='D'").fetchone():
-                            if st.button(":red[Gruppe beenden]",width=200,key="ad_bt_gruppeD"):
-                                finish_group('D')
-                        else:
-                            if st.button(":red[Platzierung neu eintragen]",width=200,key="ad_bt2_gruppeD"):
-                                finish_group('D')    
-                        st.space("stretch")
+                if settings[0][1]==4:
+                    grD = st.expander("Gruppe D", on_change="rerun",key="ad_gruppeD")
+                    with grD:
+                        raw = c.execute("""
+                        SELECT name, wins, loses, wpoints, lpoints, team_group
+                        FROM teams WHERE class LIKE '%LVL1/2%'
+                        ORDER BY wins DESC, wpoints DESC
+                        """).fetchall()
+                        print_table_alt(raw,'D')
+                        st.space("xsmall")
+                        with st.container(horizontal=True):
+                            st.space("stretch")
+                            if c.execute("SELECT id, class FROM groups WHERE is_done=0 and class='LVL1/2' and group_name='D'").fetchone():
+                                if st.button(":red[Gruppe beenden]",width=200,key="ad_bt_gruppeD"):
+                                    finish_group('D')
+                            else:
+                                if st.button(":red[Platzierung neu eintragen]",width=200,key="ad_bt2_gruppeD"):
+                                    finish_group('D')    
+                            st.space("stretch")
             st.space("stretch")
     with tab2:
         with st.container(horizontal=True):
@@ -504,8 +506,16 @@ if st.session_state.admin:
                 st.rerun()
             st.space("stretch")
     with tab3:
-        if st.checkbox("5er Gruppen"):
-            st.balloons()
+        if settings[0][1]==4:
+            if st.checkbox("5er Gruppen"):         
+                c.execute("UPDATE settings SET group_number=3 WHERE class=?",('LVL1/2',))
+                conn.commit()
+                st.rerun()
+        if settings[0][1]==3:
+            if st.checkbox("4er Gruppen"):         
+                c.execute("UPDATE settings SET group_number=4 WHERE class=?",('LVL1/2',))
+                conn.commit()
+                st.rerun()
 else:
     tab1, tab2 = st.tabs(["Gruppenphase", "K/O-Phase"])
     with tab1:
@@ -520,7 +530,7 @@ else:
                     FROM teams WHERE class LIKE '%LVL1/2%'
                     ORDER BY wins DESC, wpoints DESC
                     """).fetchall()
-                    print_table(raw,'A')
+                    print_table_alt(raw,'A')
                 st.space("xxsmall")
                 grB = st.expander("Gruppe B", on_change="rerun",key="gruppeB")
                 with grB:
@@ -529,7 +539,7 @@ else:
                     FROM teams WHERE class LIKE '%LVL1/2%'
                     ORDER BY wins DESC, wpoints DESC
                     """).fetchall()
-                    print_table(raw,'B')
+                    print_table_alt(raw,'B')
                 st.space("xxsmall")
                 grC = st.expander("Gruppe C", on_change="rerun",key="gruppeC")
                 with grC:
@@ -538,7 +548,7 @@ else:
                     FROM teams WHERE class LIKE '%LVL1/2%'
                     ORDER BY wins DESC, wpoints DESC
                     """).fetchall()
-                    print_table(raw,'C')
+                    print_table_alt(raw,'C')
                 st.space("xxsmall")
                 grD = st.expander("Gruppe D", on_change="rerun",key="gruppeD")
                 with grD:
@@ -547,7 +557,7 @@ else:
                     FROM teams WHERE class LIKE '%LVL1/2%'
                     ORDER BY wins DESC, wpoints DESC
                     """).fetchall()
-                    print_table(raw,'D')
+                    print_table_alt(raw,'D')
             st.space("stretch")
     with tab2:
         with st.container(horizontal=True):
