@@ -404,19 +404,26 @@ if "admin" not in st.session_state:
     st.session_state.admin = False
 if "selected_match" not in st.session_state:
     st.session_state.selected_match = None
-if "stt" not in st.session_state:
-    st.session_state.stt = False
 if "language" not in st.session_state:
     st.session_state.language = "german"
+#------------------
+#Top Bar
+#------------------
+with st.container(horizontal=True):
+    if st.button("🇩🇪"):
+        st.session_state.language="german"
+        st.rerun()
+    if st.button("🇬🇧"):
+        st.session_state.language="english"
+        st.rerun()
+    st.space("stretch")
+    if st.button(":material/refresh: Reload",width=100):
+        st.rerun()
 st.subheader("Level 1-2 Turnier", anchor=False)
 settings= c.execute("SELECT id, group_number FROM settings WHERE class =?",('LVL1/2',)).fetchall()
 if st.session_state.admin:
     tab1,tab2,tab3=st.tabs(["Gruppenphase", "K/O-Phase","Einstellungen"])
     with tab1:
-        with st.container(horizontal=True):
-            st.space("stretch")
-            if st.button(":material/refresh: Reload",width=100,key="tab1_reload"):
-                st.rerun()
         with st.container(horizontal=True):
             st.space("stretch")
             with st.container(width=500):
@@ -501,10 +508,6 @@ if st.session_state.admin:
     with tab2:
         with st.container(horizontal=True):
             draw_tree('LVL1/2')
-        with st.container(horizontal=True):
-            if st.button(":material/refresh: Reload",width=100):
-                st.rerun()
-            st.space("stretch")
     with tab3:
         if settings[0][1]==4:
             if st.checkbox("5er Gruppen"):         
@@ -562,7 +565,3 @@ else:
     with tab2:
         with st.container(horizontal=True):
             draw_tree('LVL1/2')
-        with st.container(horizontal=True):
-            if st.button(":material/refresh: Reload",width=100):
-                st.rerun()
-            st.space("stretch")

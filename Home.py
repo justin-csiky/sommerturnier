@@ -105,10 +105,10 @@ if "admin" not in st.session_state:
     st.session_state.admin = False
 if "selected_match" not in st.session_state:
     st.session_state.selected_match = None
-if "stt" not in st.session_state:
-    st.session_state.stt = False 
 if "language" not in st.session_state:
     st.session_state.language = "german"
+if "input_mode" not in st.session_state:
+    st.session_state.input_mode = False
 
 
 with st.container(horizontal=True):
@@ -119,7 +119,7 @@ with st.container(horizontal=True):
         st.session_state.language="english"
         st.rerun()
     st.space("stretch")
-st.title("Sommerturnier - V1.7.1",anchor=False)
+st.title("Sommerturnier - V1.8.1",anchor=False)
 st.html("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>")
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":
