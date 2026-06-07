@@ -71,6 +71,8 @@ CREATE TABLE IF NOT EXISTS teams (
     group_placement INTEGER DEFAULT 0,
     quaters_nr_winner INTEGER DEFAULT 0,
     semis_nr_winner INTEGER DEFAULT 0,
+    third_place INTEGER DEFAULT 0,
+    semis_nr_loser INTEGER DEFAULT 0,
     finals_winner INTEGER DEFAULT 0
 )
 """)
@@ -87,7 +89,8 @@ c.execute("""
 CREATE TABLE IF NOT EXISTS settings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     class TEXT,
-    group_number INTEGER DEFAULT 4         
+    group_number INTEGER DEFAULT 4,    
+    which_third_is_missing INTEGER DEFAULT 0     
 )
 """)
 conn.commit()
@@ -119,7 +122,7 @@ with st.container(horizontal=True):
         st.session_state.language="english"
         st.rerun()
     st.space("stretch")
-st.title("Sommerturnier - V1.8.1",anchor=False)
+st.title("Sommerturnier - V1.9.1",anchor=False)
 st.html("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>")
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":

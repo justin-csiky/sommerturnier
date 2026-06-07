@@ -29,6 +29,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 conn = sqlite3.connect("data.db",check_same_thread=False)
 c = conn.cursor()
+if "stt" not in st.session_state:
+    st.session_state.stt = True
 st.subheader("Standings", anchor=False)
 with st.container(horizontal=True):
     if st.session_state.stt:
@@ -101,6 +103,14 @@ with groupdb:
     db = c.execute("""
     SELECT id, class, group_name, is_done
     FROM groups
+    """).fetchall()
+    for i in db:
+        st.markdown(i)
+settingsdb = st.expander("settingsdb", on_change="rerun")
+with settingsdb:
+    db = c.execute("""
+    SELECT id, group_number
+    FROM settings
     """).fetchall()
     for i in db:
         st.markdown(i)

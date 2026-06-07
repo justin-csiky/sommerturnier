@@ -125,7 +125,6 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
                                 VALUES (?,?,?)
                             """, (klasse,gruppe,0))
                             conn.commit()
-                        st.success("Team added")
                         st.rerun()
         st.divider()
 #------------------
@@ -140,17 +139,14 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
             st.space("stretch")
             if st.button(":material/do_not_disturb_on: Delete",width=100):
                 team_id = team_dict[team_to_delete]
-
                 # check if used in matches
                 used = c.execute("""
                     SELECT 1 FROM matches
                     WHERE player1_id=? OR player2_id=?
                     LIMIT 1
                 """, (team_id, team_id)).fetchone()
-
                 if used:
                     st.warning("Team is used in matches")
-
                     if st.button("Force delete (danger)"):
                         c.execute("""
                             DELETE FROM matches
@@ -164,7 +160,6 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
                 else:
                     c.execute("DELETE FROM teams WHERE id=?", (team_id,))
                     conn.commit()
-                    st.success("Team deleted")
                     st.rerun()
         st.divider()
 #------------------
@@ -176,11 +171,11 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
         team_klasse = {name: klasse for tid, name, klasse in teams}
         names = list(team_dict.keys())
 
-        with st.form("add_match", clear_on_submit=False, border=False):
+        with st.form("add_match", clear_on_submit=True, border=False):
             with st.container(horizontal=True,border=False, vertical_alignment="center",key="first"):
                 p1_name = st.selectbox("Team 1", names,width=200,placeholder="Team 1",label_visibility="collapsed", index=None)
                 p2_name = st.selectbox("Team 2", names,width=200,placeholder="Team 2",label_visibility="collapsed", index=None)
-                stage_name = st.selectbox("Stage", ["Bracket","Quaters", "Semis", "Final"], width=150,label_visibility="collapsed",placeholder="Stage", index=None)
+                stage_name = st.selectbox("Stage", ["Bracket","Quaters", "Semis","Loser Final", "Final"], width=150,label_visibility="collapsed",placeholder="Stage", index=None)
                 court = st.selectbox("Court", list(range(1,10)), width=100,placeholder="Court",label_visibility="collapsed", index=None)
                 st.space("stretch")
                 submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
@@ -191,7 +186,6 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
                         VALUES (?, ?, ?, ?, ?, ?)
                     """, (team_dict[p1_name], team_dict[p2_name], court,0 ,team_klasse[p1_name], stage_name))
                     conn.commit()
-                    st.success("Match added")
                     st.rerun()
                 else:
                     st.warning("Nicht in der gleichen Klasse.")
@@ -241,19 +235,24 @@ if st.session_state.selected_match is None:
                         st.markdown(f"On court {court}:")
                     if match_stage=="Quaters":
                         if st.session_state.language=="german":
-                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#CD7F32"><u>Viertelfinale</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#CD7F32"><u>Viertelfinale</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                         else:
-                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#CD7F32"><u>Quater final</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#CD7F32"><u>Quater final</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                     elif match_stage=="Semis":
                         if st.session_state.language=="german":
-                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#C0C0C0"><u>Halbfinale</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#C0C0C0"><u>Halbfinale</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                         else:
-                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#C0C0C0"><u>Semi final</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#C0C0C0"><u>Semi final</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                     elif match_stage=="Final":
                         if st.session_state.language=="german":
-                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Finale</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Finale</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                         else:
-                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Final</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Final</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                    elif match_stage=="Loser Final":
+                        if st.session_state.language=="german":
+                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Spiel um Platz 3</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Game for 3rd place</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                     else:
                         st.markdown(f"""<div style="margin-top:-18px"><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                     if st.session_state.admin:
@@ -297,19 +296,24 @@ if st.session_state.selected_match is None:
                             st.markdown(f"On court {court}:")
                         if match_stage=="Quaters":
                             if st.session_state.language=="german":
-                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#CD7F32"><u>Viertelfinale</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#CD7F32"><u>Viertelfinale</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                             else:
-                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#CD7F32"><u>Quater final</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#CD7F32"><u>Quater final</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                         elif match_stage=="Semis":
                             if st.session_state.language=="german":
-                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#C0C0C0"><u>Halbfinale</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#C0C0C0"><u>Halbfinale</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                             else:
-                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#C0C0C0"><u>Semi final</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#C0C0C0"><u>Semi final</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                         elif match_stage=="Final":
                             if st.session_state.language=="german":
-                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Finale</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Finale</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                             else:
-                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Final</u></span>:</div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Final</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                        elif match_stage=="Loser Final":
+                            if st.session_state.language=="german":
+                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Spiel um Platz 3</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
+                            else:
+                                st.markdown(f"""<div style="margin-top:-20px"><div style="text-align:center;"><span style="color:#FFD700"><u>Game for 3rd place</u></span></div><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                         else:
                             st.markdown(f"""<div style="margin-top:-18px"><div style="text-align:center;"><b>{name1}</b> vs <b>{name2}</b></div></div>""", width=350,unsafe_allow_html=True)
                         if st.session_state.admin:
@@ -442,43 +446,59 @@ else:
                 s1_p1=?, s1_p2=?,
                 s2_p1=?, s2_p2=?,
                 s3_p1=?, s3_p2=?,
-                last_updated=?
                 WHERE id=?
-            """, (s1a, s1b, s2a, s2b, s3a_val, s3b_val, datetime.now(), mid))
+            """, (s1a, s1b, s2a, s2b, s3a_val, s3b_val, mid))
             conn.commit()
             winner_id = recompute_team_stats()
+            settings= c.execute("SELECT id, group_number FROM settings WHERE class =?",(klasse,)).fetchall()
             if stage_name == 'Quaters':
-                winner = c.execute("SELECT team_group, group_placement FROM teams WHERE id=?",(winner_id,)).fetchone()
-                winner_group, winner_placement = winner
-                if winner_group=='A' and winner_placement ==1:
-                    c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
-                if winner_group=='A' and winner_placement ==2:
-                    c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
-                if winner_group=='B' and winner_placement ==1:
-                    c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
-                if winner_group=='B' and winner_placement ==2:
-                    c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
-                if winner_group=='C' and winner_placement ==1:
-                    c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
-                if winner_group=='C' and winner_placement ==2:
-                    c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
-                if winner_group=='D' and winner_placement ==1:
-                    c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
-                if winner_group=='D' and winner_placement ==2:
-                    c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
-                conn.commit()
+                if settings[0][1]==4:
+                    if c.execute("SELECT team_group, group_placement FROM teams WHERE id=?",(winner_id,)).fetchone():
+                        winner = c.execute("SELECT team_group, group_placement FROM teams WHERE id=?",(winner_id,)).fetchone()
+                    winner_group, winner_placement = winner
+                    if winner_group=='A' and winner_placement ==1:
+                        c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
+                    if winner_group=='A' and winner_placement ==2:
+                        c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
+                    if winner_group=='B' and winner_placement ==1:
+                        c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
+                    if winner_group=='B' and winner_placement ==2:
+                        c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
+                    if winner_group=='C' and winner_placement ==1:
+                        c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
+                    if winner_group=='C' and winner_placement ==2:
+                        c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
+                    if winner_group=='D' and winner_placement ==1:
+                        c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
+                    if winner_group=='D' and winner_placement ==2:
+                        c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
+                    conn.commit()
+                elif settings[0][1]==3:
+                    a=1
+
             if stage_name == 'Semis':
-                winner = c.execute("SELECT name, quaters_nr_winner FROM teams WHERE id=?",(winner_id,)).fetchone()
+                if c.execute("SELECT name, quaters_nr_winner FROM teams WHERE id=?",(winner_id,)).fetchone():
+                    winner = c.execute("SELECT name, quaters_nr_winner FROM teams WHERE id=?",(winner_id,)).fetchone()
                 winner_name, winner_quaters = winner
                 if winner_quaters==1 or winner_quaters ==2:
                     c.execute("UPDATE teams SET semis_nr_winner=1 WHERE id=?",(winner_id,))
+                    if winner_id==p1:
+                        c.execute("UPDATE teams SET semis_nr_loser=1 WHERE id=?",(p2,))
+                    else:
+                        c.execute("UPDATE teams SET semis_nr_loser=1 WHERE id=?",(p1,))
                 if winner_quaters==3 or winner_quaters ==4:
                     c.execute("UPDATE teams SET semis_nr_winner=2 WHERE id=?",(winner_id,))
+                    if winner_id==p1:
+                        c.execute("UPDATE teams SET semis_nr_loser=2 WHERE id=?",(p2,))
+                    else:
+                        c.execute("UPDATE teams SET semis_nr_loser=2 WHERE id=?",(p1,))
+                conn.commit()
+            if stage_name == 'Loser Final':
+                c.execute("UPDATE teams SET third_place=1 WHERE id=?",(winner_id,))
                 conn.commit()
             if stage_name=='Final':
                 c.execute("UPDATE teams SET finals_winner=1 WHERE id=?",(winner_id,))
                 conn.commit()
-            st.success("Saved")
             st.rerun()
     with st.container(horizontal=True):
         st.space("stretch")

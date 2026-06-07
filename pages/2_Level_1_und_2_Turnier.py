@@ -79,7 +79,7 @@ def print_table_alt(r,group):
     if table1==[]:
         with st.container(horizontal=True):
             st.space("stretch")
-            st.markdown(":white[Turnierleitung erstellt Gruppe...]")
+            st.markdown(":blue[Turnierleitung erstellt Gruppe...]")
             st.space("stretch")
     else:
         rows_html = ""
@@ -143,7 +143,7 @@ def finish_group(gname):
         placement+=1
     conn.commit()
     st.rerun()
-def draw_tree(klasse):
+def draw_tree(klasse, number_groups):
     quaters1_team1 = [0,"tbd"]
     quaters1_team2 = [0,"tbd"]
     quaters2_team1 = [0,"tbd"]
@@ -156,25 +156,99 @@ def draw_tree(klasse):
     semi1_team2 = [0,"tbd"]
     semi2_team1 = [0,"tbd"]
     semi2_team2 = [0,"tbd"]
+    loser_finals_team1 = [0,"tbd"]
+    loser_finals_team2 = [0,"tbd"]
+    third = [0,"tbd"]
     finals_team1 = [0,"tbd"]
     finals_team2 = [0,"tbd"]
     winner = [0,"tbd"]
-    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone():
-        quaters1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone()
-    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'D', 2)).fetchone():
-        quaters1_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'D', 2)).fetchone()
-    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone():
-        quaters2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone()
-    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone():
-        quaters2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone()
-    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone():
-        quaters3_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone()
-    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone():
-        quaters3_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone()
-    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'D', 1)).fetchone():
-        quaters4_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'D', 1)).fetchone()
-    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone():
-        quaters4_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone()
+    if number_groups==4:
+        if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone():
+            quaters1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone()
+        if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'D', 2)).fetchone():
+            quaters1_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'D', 2)).fetchone()
+        if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone():
+            quaters2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone()
+        if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone():
+            quaters2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone()
+        if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone():
+            quaters3_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone()
+        if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone():
+            quaters3_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone()
+        if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'D', 1)).fetchone():
+            quaters4_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'D', 1)).fetchone()
+        if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone():
+            quaters4_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone()
+    elif number_groups==3:
+        if c.execute("SELECT id, name FROM teams WHERE class=? and group_placement=?",(klasse, 3)).fetchone():
+            S_teams = c.execute("SELECT id, name, team_group FROM teams WHERE class=? and group_placement=? ORDER BY wins DESC, wpoints DESC",(klasse, 3)).fetchall()
+            is_done_list = c.execute("SELECT group_name FROM groups WHERE class=? and is_done=1",(klasse,)).fetchall()
+            if len(is_done_list)==3:
+                if S_teams[2][2]=='C':
+                    c.execute("UPDATE settings SET which_third_is_missing=3 WHERE class=?",(klasse,))
+                    conn.commit()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone():
+                        quaters4_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone():
+                        quaters4_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone():
+                        quaters1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone():
+                        quaters2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone():
+                        quaters3_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone():
+                        quaters2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone()
+                    if S_teams[0][2]=='A':
+                        quaters1_team2 = S_teams[1]
+                        quaters3_team2 = S_teams[0]
+                    else:
+                        quaters1_team2 = S_teams[0]
+                        quaters3_team2 = S_teams[1]
+                if S_teams[2][2]=='B':
+                    c.execute("UPDATE settings SET which_third_is_missing=2 WHERE class=?",(klasse,))
+                    conn.commit()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone():
+                        quaters4_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone():
+                        quaters4_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone():
+                        quaters1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone():
+                        quaters3_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone():
+                        quaters2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone():
+                        quaters2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone()
+                    if S_teams[0][2]=='A':
+                        quaters1_team2 = S_teams[1]
+                        quaters3_team2 = S_teams[0]
+                    else:
+                        quaters1_team2 = S_teams[0]
+                        quaters3_team2 = S_teams[1]
+                if S_teams[2][2]=='A':
+                    c.execute("UPDATE settings SET which_third_is_missing=1 WHERE class=?",(klasse,))
+                    conn.commit()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone():
+                        quaters4_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 2)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone():
+                        quaters4_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 2)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone():
+                        quaters3_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone():
+                        quaters1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'B', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone():
+                        quaters2_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'C', 1)).fetchone()
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone():
+                        quaters2_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone()
+                    if S_teams[0][2]=='B':
+                        quaters1_team2 = S_teams[1]
+                        quaters3_team2 = S_teams[0]
+                    else:
+                        quaters1_team2 = S_teams[0]
+                        quaters3_team2 = S_teams[1]
+                
+
 
     if c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=1",(klasse,)).fetchone():
         semi1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=1",(klasse,)).fetchone()
@@ -190,10 +264,26 @@ def draw_tree(klasse):
         finals_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_winner=1",(klasse,)).fetchone()
     if c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_winner=2",(klasse,)).fetchone():
         finals_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_winner=2",(klasse,)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_loser=1",(klasse,)).fetchone():
+        loser_finals_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_loser=1",(klasse,)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_loser=2",(klasse,)).fetchone():
+        loser_finals_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and semis_nr_loser=2",(klasse,)).fetchone()
     
 
     if c.execute("SELECT id, name FROM teams WHERE class=? and finals_winner=1",(klasse,)).fetchone():
         winner = c.execute("SELECT id, name FROM teams WHERE class=? and finals_winner=1",(klasse,)).fetchone()
+    if c.execute("SELECT id, name FROM teams WHERE class=? and third_place=1",(klasse,)).fetchone():
+        third = c.execute("SELECT id, name FROM teams WHERE class=? and third_place=1",(klasse,)).fetchone()
+    # if not winner[1]=="tbd":
+    #     col1="#FFD700"
+    #     col2="#C0C0C0"
+    #     col3="#CD7F32"
+    # else:
+    #     col1="#FFFFFF"
+    #     col2="#FFFFFF"
+    #     col3="#FFFFFF"
+    col1="#FFFFFF"
+    col3="#FFFFFF"
     with st.container():
         st.space("small")
         st.markdown(f"""
@@ -206,7 +296,6 @@ def draw_tree(klasse):
                 padding-right: 10px;
                 padding-bottom: 10px;
             }}
-
             .bracket-wrapper {{
                 min-width: 400px;
             }}
@@ -227,10 +316,15 @@ def draw_tree(klasse):
                 gap: 180px;
             }}
             .team-column3 {{
-                display: flex;
+                position: relative;
                 flex-direction: column;
-                gap: 406px;
+                top:118px;
             }}
+            .team-column4 {{
+                position: relative;
+                flex-direction: column;
+                top:210px;
+            }}    
             .team-box {{
                 background: #262730;
                 padding: 12px 20px;
@@ -239,23 +333,38 @@ def draw_tree(klasse):
                 text-align: center;
                 font-weight: bold;
             }}
+            .team-box.special1{{
+                margin-bottom:406px;
+            }}
+            .team-box.special2{{
+                margin-bottom:100px;
+            }}
+            .team-box.special3{{
+                margin-bottom:40px;
+            }}
+            .team-box.special4{{
+                margin-bottom:370px;
+            }}
             .connector {{
                 position: relative;
-                width: 50px;
-                min-width:50px;
+                width: 30px;
+                min-width:30px;
                 height:780px;
             }}
             .h-lineq {{
                 position: absolute;
                 left: 0;
                 height: 94px;
-                width: 20px;
+                width: 10px;
                 border-top: 4px solid #FFF;
                 border-bottom: 4px solid #FFF;
                 border-right: 4px solid #FFF;
             }}
             .h-lineq.one {{
                 top: 0px;
+            }}
+            .h-lineq.lose{{
+                top: 764px;
             }}
             .h-lineq.two {{
                 top: 228px;
@@ -270,7 +379,7 @@ def draw_tree(klasse):
                 position: absolute;
                 left: 0;
                 height: 234px;
-                width: 20px;
+                width: 10px;
                 border-top: 4px solid #FFF;
                 border-bottom: 4px solid #FFF;
                 border-right: 4px solid #FFF;
@@ -285,7 +394,7 @@ def draw_tree(klasse):
                 position: absolute;
                 left: 0;
                 height: 460px;
-                width: 20px;
+                width: 10px;
                 border-top: 4px solid #FFF;
                 border-bottom: 4px solid #FFF;
                 border-right: 4px solid #FFF;
@@ -295,12 +404,15 @@ def draw_tree(klasse):
             }}
             .middle-lineq{{
                 position: absolute;
-                left: 20px;
-                width: 30px;
+                left: 10px;
+                width: 20px;
                 border-top: 4px solid #FFF;
             }}
             .middle-lineq.one{{
                 top: 44px;
+            }}
+            .middle-lineq.lose{{
+                top:808px;
             }}
             .middle-lineq.two{{
                 top: 274px;
@@ -313,8 +425,8 @@ def draw_tree(klasse):
             }}
             .middle-lines{{
                 position: absolute;
-                left: 20px;
-                width: 30px;
+                left: 10px;
+                width: 20px;
                 border-top: 4px solid #FFF;
             }}
             .middle-lines.top{{
@@ -325,8 +437,8 @@ def draw_tree(klasse):
             }}
             .middle-linef{{
                 position: absolute;
-                left: 20px;
-                width: 30px;
+                left: 10px;
+                width: 20px;
                 border-top: 4px solid #FFF;
             }}
             .middle-linef.top{{
@@ -360,7 +472,7 @@ def draw_tree(klasse):
                             <div class="middle-lineq four"></div>
                         </div>
                         <div class="team-column2">
-                            <div class="team-box top">
+                            <div class="team-box">
                                 {semi1_team1[1]}
                             </div>
                             <div class="team-box">
@@ -380,20 +492,31 @@ def draw_tree(klasse):
                             <div class="middle-lines bot"></div>
                         </div>
                         <div class="team-column3">
-                            <div class="team-box">
+                            <div class="team-box special1">
                                 {finals_team1[1]}
                             </div>
-                            <div class="team-box">
+                            <div class="team-box special2">
                                 {finals_team2[1]}
+                            </div>
+                            <div class="team-box special3">
+                                {loser_finals_team1[1]}
+                            </div>
+                            <div class="team-box">
+                                {loser_finals_team2[1]}
                             </div>
                         </div>
                         <div class="connector">
                             <div class="h-linef top"></div>
                             <div class="middle-linef top"></div>
+                            <div class="h-lineq lose"></div>
+                            <div class="middle-lineq lose"></div>
                         </div>
                         <div class="team-column4">
+                            <div class="team-box special4">
+                                <span style="color:{col1}">{winner[1]}</span>
+                            </div>
                             <div class="team-box">
-                                {winner[1]}
+                                <span style="color:{col3}">{third[1]}</span>
                             </div>
                         </div>
                     </div>
@@ -406,6 +529,8 @@ if "selected_match" not in st.session_state:
     st.session_state.selected_match = None
 if "language" not in st.session_state:
     st.session_state.language = "german"
+if "input_mode" not in st.session_state:
+    st.session_state.input_mode = False
 #------------------
 #Top Bar
 #------------------
@@ -421,14 +546,14 @@ with st.container(horizontal=True):
         st.rerun()
 st.subheader("Level 1-2 Turnier", anchor=False)
 settings= c.execute("SELECT id, group_number FROM settings WHERE class =?",('LVL1/2',)).fetchall()
-if st.session_state.admin:
+if st.session_state.admin and not st.session_state.input_mode:
     tab1,tab2,tab3=st.tabs(["Gruppenphase", "K/O-Phase","Einstellungen"])
     with tab1:
         with st.container(horizontal=True):
             st.space("stretch")
             with st.container(width=500):
                 st.space("small")
-                grA = st.expander("Gruppe A", on_change="rerun",key="ad_gruppeA")
+                grA = st.expander("Gruppe A", on_change="rerun",key="ad_gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
                     SELECT name, wins, loses, wpoints, lpoints, team_group
@@ -447,7 +572,7 @@ if st.session_state.admin:
                                 finish_group('A')
                         st.space("stretch")
                 st.space("xxsmall")
-                grB = st.expander("Gruppe B", on_change="rerun",key="ad_gruppeB")
+                grB = st.expander("Gruppe B", on_change="rerun",key="ad_gruppeB",expanded=True)
                 with grB:
                     raw = c.execute("""
                     SELECT name, wins, loses, wpoints, lpoints, team_group
@@ -466,7 +591,7 @@ if st.session_state.admin:
                                 finish_group('B')  
                         st.space("stretch")
                 st.space("xxsmall")
-                grC = st.expander("Gruppe C", on_change="rerun",key="ad_gruppeC")
+                grC = st.expander("Gruppe C", on_change="rerun",key="ad_gruppeC",expanded=True)
                 with grC:
                     raw = c.execute("""
                     SELECT name, wins, loses, wpoints, lpoints, team_group
@@ -486,7 +611,7 @@ if st.session_state.admin:
                         st.space("stretch")
                 st.space("xxsmall")
                 if settings[0][1]==4:
-                    grD = st.expander("Gruppe D", on_change="rerun",key="ad_gruppeD")
+                    grD = st.expander("Gruppe D", on_change="rerun",key="ad_gruppeD",expanded=True)
                     with grD:
                         raw = c.execute("""
                         SELECT name, wins, loses, wpoints, lpoints, team_group
@@ -507,7 +632,7 @@ if st.session_state.admin:
             st.space("stretch")
     with tab2:
         with st.container(horizontal=True):
-            draw_tree('LVL1/2')
+            draw_tree('LVL1/2',settings[0][1])
     with tab3:
         if settings[0][1]==4:
             if st.checkbox("5er Gruppen"):         
@@ -517,6 +642,7 @@ if st.session_state.admin:
         if settings[0][1]==3:
             if st.checkbox("4er Gruppen"):         
                 c.execute("UPDATE settings SET group_number=4 WHERE class=?",('LVL1/2',))
+                c.execute("UPDATE settings SET which_third_is_missing=0 WHERE class=?",('LVL1/2',))
                 conn.commit()
                 st.rerun()
 else:
@@ -526,7 +652,7 @@ else:
             st.space("stretch")
             with st.container(width=600):
                 st.space("small")
-                grA = st.expander("Gruppe A", on_change="rerun",key="gruppeA")
+                grA = st.expander("Gruppe A", on_change="rerun",key="gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
                     SELECT name, wins, loses, wpoints, lpoints, team_group
@@ -535,7 +661,7 @@ else:
                     """).fetchall()
                     print_table_alt(raw,'A')
                 st.space("xxsmall")
-                grB = st.expander("Gruppe B", on_change="rerun",key="gruppeB")
+                grB = st.expander("Gruppe B", on_change="rerun",key="gruppeB",expanded=True)
                 with grB:
                     raw = c.execute("""
                     SELECT name, wins, loses, wpoints, lpoints, team_group
@@ -544,7 +670,7 @@ else:
                     """).fetchall()
                     print_table_alt(raw,'B')
                 st.space("xxsmall")
-                grC = st.expander("Gruppe C", on_change="rerun",key="gruppeC")
+                grC = st.expander("Gruppe C", on_change="rerun",key="gruppeC",expanded=True)
                 with grC:
                     raw = c.execute("""
                     SELECT name, wins, loses, wpoints, lpoints, team_group
@@ -553,15 +679,16 @@ else:
                     """).fetchall()
                     print_table_alt(raw,'C')
                 st.space("xxsmall")
-                grD = st.expander("Gruppe D", on_change="rerun",key="gruppeD")
-                with grD:
-                    raw = c.execute("""
-                    SELECT name, wins, loses, wpoints, lpoints, team_group
-                    FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, wpoints DESC
-                    """).fetchall()
-                    print_table_alt(raw,'D')
+                if settings[0][1]==4:
+                    grD = st.expander("Gruppe D", on_change="rerun",key="gruppeD",expanded=True)
+                    with grD:
+                        raw = c.execute("""
+                        SELECT name, wins, loses, wpoints, lpoints, team_group
+                        FROM teams WHERE class LIKE '%LVL1/2%'
+                        ORDER BY wins DESC, wpoints DESC
+                        """).fetchall()
+                        print_table_alt(raw,'D')
             st.space("stretch")
     with tab2:
         with st.container(horizontal=True):
-            draw_tree('LVL1/2')
+            draw_tree('LVL1/2',settings[0][1])
