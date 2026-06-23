@@ -62,10 +62,18 @@ c.execute("""
 CREATE TABLE IF NOT EXISTS teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
-    wins INTEGER,
-    loses INTEGER,
-    wpoints INTEGER,
-    lpoints INTEGER,
+    wins INTEGER DEFAULT 0,
+    loses INTEGER DEFAULT 0,
+    wsets INTEGER DEFAULT 0,
+    lsets INTEGER DEFAULT 0,
+    wpoints INTEGER DEFAULT 0,
+    lpoints INTEGER DEFAULT 0,
+    total_wins INTEGER DEFAULT 0,
+    total_loses INTEGER DEFAULT 0,
+    total_wsets INTEGER DEFAULT 0,
+    total_lsets INTEGER DEFAULT 0,
+    total_wpoints INTEGER DEFAULT 0,
+    total_lpoints INTEGER DEFAULT 0,
     class TEXT,
     team_group TEXT,
     group_placement INTEGER DEFAULT 0,
@@ -122,7 +130,7 @@ with st.container(horizontal=True):
         st.session_state.language="english"
         st.rerun()
     st.space("stretch")
-st.title("Sommerturnier - V1.9.1",anchor=False)
+st.title("Sommerturnier - V1.10.1",anchor=False)
 st.html("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>")
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":

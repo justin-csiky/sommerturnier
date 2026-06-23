@@ -51,40 +51,101 @@ def get_team_name(team_id):
     res = c.execute("SELECT name FROM teams WHERE id=?", (team_id,)).fetchone()
     return res[0] if res else "Unknown"
 
+def get_team_group(team_id):
+    res = c.execute("SELECT team_group FROM teams WHERE id=?", (team_id,)).fetchone()
+    return res[0] if res else "Unknown"
+
+def get_team_placement(team_id):
+    res = c.execute("SELECT group_placement FROM teams WHERE id=?", (team_id,)).fetchone()
+    return res[0] if res else "Unknown"
+
 # --- RECOMPUTE STATS ---
-def recompute_team_stats():
-    c.execute("UPDATE teams SET wins=0, loses=0, wpoints=0, lpoints=0")
-    matches = c.execute("""
-        SELECT player1_id, player2_id,
-               s1_p1, s1_p2,
-               s2_p1, s2_p2,
-               s3_p1, s3_p2
-        FROM matches
-    """).fetchall()
-    for m in matches:
-        p1, p2, s1p1, s1p2, s2p1, s2p2, s3p1, s3p2 = m
-        if None in (s1p1, s1p2, s2p1, s2p2):
+def recompute_team_stats(mid, stage_name="Quaters", old_s1p1=0, old_s1p2=0, old_s2p1=0, old_s2p2=0, old_s3p1=0, old_s3p2=0):
+    sets1 = sets2 = 0
+    total_points_1 = old_s1p1 + old_s2p1 + old_s3p1
+    total_points_2 = old_s1p2 + old_s2p2 + old_s3p2
+    match = c.execute("SELECT player1_id, player2_id, s1_p1, s1_p2, s2_p1, s2_p2, s3_p1, s3_p2 FROM matches WHERE id=?", (mid,)).fetchone()
+    (p1, p2, s1p1, s1p2, s2p1, s2p2, s3p1, s3p2) = match
+    for a, b in [(old_s1p1, old_s1p2), (old_s2p1, old_s2p2), (old_s3p1, old_s3p2)]:
+        if a==0 and b==0:
             continue
-        sets1 = sets2 = 0
-        for a, b in [(s1p1, s1p2), (s2p1, s2p2), (s3p1, s3p2)]:
-            if a is None or b is None:
-                continue
-            if a > b:
-                sets1 += 1
-            else:
-                sets2 += 1
-        if sets1 > sets2:
+        if a > b:
+            sets1 += 1
+        else:
+            sets2 += 1
+    if sets1 > sets2:
+        c.execute("UPDATE teams SET total_wins=total_wins-1 WHERE id=?", (p1,))
+        c.execute("UPDATE teams SET total_loses=total_loses-1 WHERE id=?", (p2,))
+        if stage_name == "Bracket":
+            c.execute("UPDATE teams SET wins=wins-1 WHERE id=?", (p1,))
+            c.execute("UPDATE teams SET loses=loses-1 WHERE id=?", (p2,))
+    elif sets1 < sets2:
+        c.execute("UPDATE teams SET total_wins=total_wins-1 WHERE id=?", (p2,))
+        c.execute("UPDATE teams SET total_loses=total_loses-1 WHERE id=?", (p1,))
+        if stage_name == "Bracket":
+            c.execute("UPDATE teams SET wins=wins-1 WHERE id=?", (p2,))
+            c.execute("UPDATE teams SET loses=loses-1 WHERE id=?", (p1,))
+    if stage_name == "Bracket":
+        c.execute("UPDATE teams SET wsets=wsets-? WHERE id=?", (sets1, p1))
+        c.execute("UPDATE teams SET lsets=lsets-? WHERE id=?", (sets2, p1))
+        c.execute("UPDATE teams SET wsets=wsets-? WHERE id=?", (sets2, p2))
+        c.execute("UPDATE teams SET lsets=lsets-? WHERE id=?", (sets1, p2))
+        c.execute("UPDATE teams SET wpoints=wpoints-? WHERE id=?", (total_points_2, p2))
+        c.execute("UPDATE teams SET lpoints=lpoints-? WHERE id=?", (total_points_1, p2))
+        c.execute("UPDATE teams SET wpoints=wpoints-? WHERE id=?", (total_points_1, p1))
+        c.execute("UPDATE teams SET lpoints=lpoints-? WHERE id=?", (total_points_2, p1))
+    c.execute("UPDATE teams SET total_wsets=total_wsets-? WHERE id=?", (sets1, p1))
+    c.execute("UPDATE teams SET total_lsets=total_lsets-? WHERE id=?", (sets2, p1))
+    c.execute("UPDATE teams SET total_wsets=total_wsets-? WHERE id=?", (sets2, p2))
+    c.execute("UPDATE teams SET total_lsets=total_lsets-? WHERE id=?", (sets1, p2))
+    c.execute("UPDATE teams SET total_wpoints=total_wpoints-? WHERE id=?", (total_points_2, p2))
+    c.execute("UPDATE teams SET total_lpoints=total_lpoints-? WHERE id=?", (total_points_1, p2))
+    c.execute("UPDATE teams SET total_wpoints=total_wpoints-? WHERE id=?", (total_points_1, p1))
+    c.execute("UPDATE teams SET total_lpoints=total_lpoints-? WHERE id=?", (total_points_2, p1))
+    sets1 = sets2 = 0
+    if s3p1 is None and s3p2 is None:
+        s3p1=0
+        s3p2=0
+    total_points_1= s1p1+s2p1+s3p1
+    total_points_2= s1p2+s2p2+s3p2
+    for a, b in [(s1p1, s1p2), (s2p1, s2p2), (s3p1, s3p2)]:
+        if a==0 and b==0:
+            continue
+        if a > b:
+            sets1 += 1
+        else:
+            sets2 += 1
+    if sets1 > sets2:
+        c.execute("UPDATE teams SET total_wins=total_wins+1 WHERE id=?", (p1,))
+        c.execute("UPDATE teams SET total_loses=total_loses+1 WHERE id=?", (p2,))
+        if stage_name == "Bracket":
             c.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p1,))
             c.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p2,))
-            winner=p1
-        else:
+        winner=p1
+    else:
+        c.execute("UPDATE teams SET total_wins=total_wins+1 WHERE id=?", (p2,))
+        c.execute("UPDATE teams SET total_loses=total_loses+1 WHERE id=?", (p1,))
+        if stage_name == "Bracket":
             c.execute("UPDATE teams SET wins=wins+1 WHERE id=?", (p2,))
             c.execute("UPDATE teams SET loses=loses+1 WHERE id=?", (p1,))
-            winner=p2
-        c.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets1, p1))
-        c.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets2, p1))
-        c.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (sets2, p2))
-        c.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (sets1, p2))
+        winner=p2
+    if stage_name == "Bracket":
+        c.execute("UPDATE teams SET wsets=wsets+? WHERE id=?", (sets1, p1))
+        c.execute("UPDATE teams SET lsets=lsets+? WHERE id=?", (sets2, p1))
+        c.execute("UPDATE teams SET wsets=wsets+? WHERE id=?", (sets2, p2))
+        c.execute("UPDATE teams SET lsets=lsets+? WHERE id=?", (sets1, p2))
+        c.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (total_points_2, p2))
+        c.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (total_points_1, p2))
+        c.execute("UPDATE teams SET wpoints=wpoints+? WHERE id=?", (total_points_1, p1))
+        c.execute("UPDATE teams SET lpoints=lpoints+? WHERE id=?", (total_points_2, p1))
+    c.execute("UPDATE teams SET total_wsets=total_wsets+? WHERE id=?", (sets1, p1))
+    c.execute("UPDATE teams SET total_lsets=total_lsets+? WHERE id=?", (sets2, p1))
+    c.execute("UPDATE teams SET total_wsets=total_wsets+? WHERE id=?", (sets2, p2))
+    c.execute("UPDATE teams SET total_lsets=total_lsets+? WHERE id=?", (sets1, p2))
+    c.execute("UPDATE teams SET total_wpoints=total_wpoints+? WHERE id=?", (total_points_2, p2))
+    c.execute("UPDATE teams SET total_lpoints=total_lpoints+? WHERE id=?", (total_points_1, p2))
+    c.execute("UPDATE teams SET total_wpoints=total_wpoints+? WHERE id=?", (total_points_1, p1))
+    c.execute("UPDATE teams SET total_lpoints=total_lpoints+? WHERE id=?", (total_points_2, p1))
     conn.commit()
     return winner
 
@@ -110,7 +171,7 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
                         st.error("Team exists")
                     else:
                         c.execute("""
-                            INSERT INTO teams (name, wins, loses, wpoints, lpoints, class, team_group, quaters_nr_winner, semis_nr_winner, finals_winner)
+                            INSERT INTO teams (name, wins, loses, wsets, lsets, class, team_group, quaters_nr_winner, semis_nr_winner, finals_winner)
                             VALUES (?,0,0,0,0,?,?,0,0,0)
                         """, (name,klasse,gruppe))
                         conn.commit()
@@ -154,7 +215,6 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
                         """, (team_id, team_id))
                         c.execute("DELETE FROM teams WHERE id=?", (team_id,))
                         conn.commit()
-                        recompute_team_stats()
                         st.success("Team and related matches deleted")
                         st.rerun()
                 else:
@@ -175,7 +235,7 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
             with st.container(horizontal=True,border=False, vertical_alignment="center",key="first"):
                 p1_name = st.selectbox("Team 1", names,width=200,placeholder="Team 1",label_visibility="collapsed", index=None)
                 p2_name = st.selectbox("Team 2", names,width=200,placeholder="Team 2",label_visibility="collapsed", index=None)
-                stage_name = st.selectbox("Stage", ["Bracket","Quaters", "Semis","Loser Final", "Final"], width=150,label_visibility="collapsed",placeholder="Stage", index=None)
+                stage_name = st.selectbox("Stage", ["Bracket","Quaters", "Semis", "Final", "Loser Final"], width=150,label_visibility="collapsed",placeholder="Stage", index=None)
                 court = st.selectbox("Court", list(range(1,10)), width=100,placeholder="Court",label_visibility="collapsed", index=None)
                 st.space("stretch")
                 submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
@@ -273,7 +333,6 @@ if st.session_state.selected_match is None:
                         if st.button(":material/Delete:", key=f"del_match_{mid}"):
                             c.execute("DELETE FROM matches WHERE id=?", (mid,))
                             conn.commit()
-                            recompute_team_stats()
                             st.success("Match deleted")
                             st.rerun()
                 st.space("stretch")
@@ -334,7 +393,6 @@ if st.session_state.selected_match is None:
                             if st.button(":material/Delete:", key=f"del_match_{mid}"):
                                 c.execute("DELETE FROM matches WHERE id=?", (mid,))
                                 conn.commit()
-                                recompute_team_stats()
                                 st.success("Match deleted")
                                 st.rerun()
                     st.space("stretch")
@@ -349,6 +407,21 @@ else:
     (_, p1, p2, court,
      s1p1, s1p2, s2p1, s2p2, s3p1, s3p2,
      last_updated, _, is_visible, klasse, stage_name) = m
+    already_filled=False
+    prev_s1p1=0
+    prev_s1p2=0
+    prev_s2p1=0
+    prev_s2p2=0
+    prev_s3p1=0
+    prev_s3p2=0
+    if not(s1p1 is None and s1p2 is None and s2p1 is None and s2p2 is None and s3p1 is None and s3p2 is None):
+        already_filled=True
+        prev_s1p1=s1p1
+        prev_s1p2=s1p2
+        prev_s2p1=s2p1
+        prev_s2p2=s2p2
+        prev_s3p1=s3p1
+        prev_s3p2=s3p2
     name1 = get_team_name(p1)
     name2 = get_team_name(p2)
     st.subheader(f"***{name1}*** vs ***{name2}***",anchor=False)
@@ -441,15 +514,9 @@ else:
             else:
                 s3a_val = s3a
                 s3b_val = s3b
-            c.execute("""
-                UPDATE matches SET
-                s1_p1=?, s1_p2=?,
-                s2_p1=?, s2_p2=?,
-                s3_p1=?, s3_p2=?,
-                WHERE id=?
-            """, (s1a, s1b, s2a, s2b, s3a_val, s3b_val, mid))
+            c.execute("UPDATE matches SET s1_p1=?, s1_p2=?, s2_p1=?, s2_p2=?, s3_p1=?, s3_p2=? WHERE id=?", (s1a, s1b, s2a, s2b, s3a_val, s3b_val, mid))
             conn.commit()
-            winner_id = recompute_team_stats()
+            winner_id = recompute_team_stats(mid, stage_name, prev_s1p1, prev_s1p2, prev_s2p1, prev_s2p2, prev_s3p1, prev_s3p2)
             settings= c.execute("SELECT id, group_number FROM settings WHERE class =?",(klasse,)).fetchall()
             if stage_name == 'Quaters':
                 if settings[0][1]==4:
@@ -474,7 +541,46 @@ else:
                         c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
                     conn.commit()
                 elif settings[0][1]==3:
-                    a=1
+                    if c.execute("SELECT id, name FROM teams WHERE class=? and group_placement=?",(klasse, 3)).fetchone():
+                        S_teams = c.execute("SELECT id, name, team_group FROM teams WHERE class=? and group_placement=? ORDER BY wins DESC, lsets ASC, lpoints ASC",(klasse, 3)).fetchall()
+                        is_done_list = c.execute("SELECT group_name FROM groups WHERE class=? and is_done=1",(klasse,)).fetchall()
+                        if len(is_done_list)==3:
+                            if S_teams[2][2]=='C':
+                                c.execute("UPDATE settings SET which_third_is_missing=3 WHERE class=?",(klasse,))
+                                conn.commit()
+                                if (get_team_group(p1)=='A' and get_team_placement(p1)==1) or (get_team_group(p2)=='A' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='B' and get_team_placement(p1)==1) or (get_team_group(p2)=='B' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='C' and get_team_placement(p1)==1) or (get_team_group(p2)=='C' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='A' and get_team_placement(p1)==2) or (get_team_group(p2)=='A' and get_team_placement(p2)==2):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
+                                conn.commit()
+                            if S_teams[2][2]=='B':
+                                c.execute("UPDATE settings SET which_third_is_missing=2 WHERE class=?",(klasse,))
+                                conn.commit()
+                                if (get_team_group(p1)=='A' and get_team_placement(p1)==1) or (get_team_group(p2)=='A' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='B' and get_team_placement(p1)==1) or (get_team_group(p2)=='B' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='C' and get_team_placement(p1)==1) or (get_team_group(p2)=='C' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='A' and get_team_placement(p1)==2) or (get_team_group(p2)=='A' and get_team_placement(p2)==2):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
+                                conn.commit()
+                            if S_teams[2][2]=='A':
+                                c.execute("UPDATE settings SET which_third_is_missing=1 WHERE class=?",(klasse,))
+                                conn.commit()
+                                if (get_team_group(p1)=='A' and get_team_placement(p1)==1) or (get_team_group(p2)=='A' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=3 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='B' and get_team_placement(p1)==1) or (get_team_group(p2)=='B' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=1 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='C' and get_team_placement(p1)==1) or (get_team_group(p2)=='C' and get_team_placement(p2)==1):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=2 WHERE id=?",(winner_id,))
+                                if (get_team_group(p1)=='A' and get_team_placement(p1)==2) or (get_team_group(p2)=='A' and get_team_placement(p2)==2):
+                                    c.execute("UPDATE teams SET quaters_nr_winner=4 WHERE id=?",(winner_id,))
+                                conn.commit()
 
             if stage_name == 'Semis':
                 if c.execute("SELECT name, quaters_nr_winner FROM teams WHERE id=?",(winner_id,)).fetchone():

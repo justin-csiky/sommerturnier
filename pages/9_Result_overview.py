@@ -93,7 +93,7 @@ with matchdb:
 teamdb = st.expander("teamsdb", on_change="rerun")
 with teamdb:
     db = c.execute("""
-    SELECT id, name, wins, loses, wpoints, lpoints, class, team_group, group_placement, quaters_nr_winner, semis_nr_winner, finals_winner
+    SELECT id, name, wins, loses, wsets, lsets, wpoints, lpoints, total_wins, total_loses, total_wsets, total_lsets, total_wpoints, total_lpoints, class, team_group, group_placement, quaters_nr_winner, semis_nr_winner, finals_winner
     FROM teams
     """).fetchall()
     for i in db:

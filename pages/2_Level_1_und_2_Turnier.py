@@ -135,7 +135,7 @@ def finish_group(gname):
     groupid = c.execute("SELECT id, class FROM groups WHERE class=? and group_name=?", ('LVL1/2',gname)).fetchone()
     c.execute("UPDATE groups SET is_done=1 WHERE id=?",(groupid[0],))
     conn.commit()
-    teams = c.execute("SELECT id FROM teams WHERE class=? and team_group=? ORDER BY wins DESC, wpoints DESC", ('LVL1/2',gname)).fetchall()
+    teams = c.execute("SELECT id FROM teams WHERE class=? and team_group=? ORDER BY wins DESC, lsets ASC, lpoints ASC", ('LVL1/2',gname)).fetchall()
     placement = 1
     for i in teams:
         id = i[0]
@@ -181,7 +181,7 @@ def draw_tree(klasse, number_groups):
             quaters4_team2 = c.execute("SELECT id, name FROM teams WHERE class=? and team_group=? and group_placement=?",(klasse,'A', 2)).fetchone()
     elif number_groups==3:
         if c.execute("SELECT id, name FROM teams WHERE class=? and group_placement=?",(klasse, 3)).fetchone():
-            S_teams = c.execute("SELECT id, name, team_group FROM teams WHERE class=? and group_placement=? ORDER BY wins DESC, wpoints DESC",(klasse, 3)).fetchall()
+            S_teams = c.execute("SELECT id, name, team_group FROM teams WHERE class=? and group_placement=? ORDER BY wins DESC, lsets ASC, lpoints ASC",(klasse, 3)).fetchall()
             is_done_list = c.execute("SELECT group_name FROM groups WHERE class=? and is_done=1",(klasse,)).fetchall()
             if len(is_done_list)==3:
                 if S_teams[2][2]=='C':
@@ -247,9 +247,6 @@ def draw_tree(klasse, number_groups):
                     else:
                         quaters1_team2 = S_teams[0]
                         quaters3_team2 = S_teams[1]
-                
-
-
     if c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=1",(klasse,)).fetchone():
         semi1_team1 = c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=1",(klasse,)).fetchone()
     if c.execute("SELECT id, name FROM teams WHERE class=? and quaters_nr_winner=2",(klasse,)).fetchone():
@@ -274,27 +271,21 @@ def draw_tree(klasse, number_groups):
         winner = c.execute("SELECT id, name FROM teams WHERE class=? and finals_winner=1",(klasse,)).fetchone()
     if c.execute("SELECT id, name FROM teams WHERE class=? and third_place=1",(klasse,)).fetchone():
         third = c.execute("SELECT id, name FROM teams WHERE class=? and third_place=1",(klasse,)).fetchone()
-    # if not winner[1]=="tbd":
-    #     col1="#FFD700"
-    #     col2="#C0C0C0"
-    #     col3="#CD7F32"
-    # else:
-    #     col1="#FFFFFF"
-    #     col2="#FFFFFF"
-    #     col3="#FFFFFF"
-    col1="#FFFFFF"
-    col3="#FFFFFF"
+    if winner[1]=="tbd":
+        col1="#FFFFFF"
+    else:
+        col1="#CFB23F"
     with st.container():
         st.space("small")
         st.markdown(f"""
             <style>
             .scroll-container {{
-                overflow-x: auto;
-                overflow-y: auto;
+                overflow-y: hidden;
+                overflow-x: scroll;
                 width: 100%;
                 height: 100%;
                 padding-right: 10px;
-                padding-bottom: 10px;
+                min-width:400px;
             }}
             .bracket-wrapper {{
                 min-width: 400px;
@@ -313,136 +304,145 @@ def draw_tree(klasse, number_groups):
             .team-column2 {{
                 display: flex;
                 flex-direction: column;
-                gap: 180px;
+                gap: 200px;
             }}
             .team-column3 {{
                 position: relative;
                 flex-direction: column;
-                top:118px;
+                top:100px;
             }}
             .team-column4 {{
                 position: relative;
                 flex-direction: column;
-                top:210px;
+                top:194px;
             }}    
             .team-box {{
+                display: flex;
+                justify-content: center;
+                white-space: normal;
+                word-break: break-word;
+                font-size: 14px; 
                 background: #262730;
                 padding: 12px 20px;
                 border-radius: 10px;
                 width: 150px;
+                height: 70px;
+                overflow: auto;
+                align-items: center;
                 text-align: center;
                 font-weight: bold;
+                vertical-align: middle;
             }}
             .team-box.special1{{
-                margin-bottom:406px;
+                margin-bottom:410px;
             }}
             .team-box.special2{{
-                margin-bottom:100px;
+                margin-bottom:80px;
             }}
             .team-box.special3{{
                 margin-bottom:40px;
             }}
             .team-box.special4{{
-                margin-bottom:370px;
+                margin-bottom:365px;
             }}
             .connector {{
                 position: relative;
                 width: 30px;
                 min-width:30px;
-                height:780px;
+                height:1000px;
             }}
             .h-lineq {{
                 position: absolute;
                 left: 0;
-                height: 94px;
+                height: 115px;
                 width: 10px;
-                border-top: 4px solid #FFF;
-                border-bottom: 4px solid #FFF;
-                border-right: 4px solid #FFF;
+                border-top: 5px solid #FFF;
+                border-bottom: 5px solid #FFF;
+                border-right: 5px solid #FFF;
             }}
             .h-lineq.one {{
-                top: 0px;
+                top: 37px;
             }}
             .h-lineq.lose{{
-                top: 764px;
+                top: 858px;
             }}
             .h-lineq.two {{
-                top: 228px;
+                top: 307px;
             }}
             .h-lineq.three {{
-                top: 458px;
+                top: 579px;
             }}
             .h-lineq.four {{
-                top: 688px;
+                top: 847px;
             }}
             .h-lines {{
                 position: absolute;
                 left: 0;
-                height: 234px;
+                height: 274px;
                 width: 10px;
-                border-top: 4px solid #FFF;
-                border-bottom: 4px solid #FFF;
-                border-right: 4px solid #FFF;
+                border-top: 5px solid #FFF;
+                border-bottom: 5px solid #FFF;
+                border-right: 5px solid #FFF;
             }}
             .h-lines.top {{
-                top: 44px;
+                top: 93px;
             }}
             .h-lines.bot {{
-                top: 504px;
+                top: 633px;
             }}
             .h-linef {{
                 position: absolute;
                 left: 0;
-                height: 460px;
+                height: 485px;
                 width: 10px;
-                border-top: 4px solid #FFF;
-                border-bottom: 4px solid #FFF;
-                border-right: 4px solid #FFF;
+                border-top: 5px solid #FFF;
+                border-bottom: 5px solid #FFF;
+                border-right: 5px solid #FFF;
             }}
             .h-linef.top {{
-                top: 160px;
+                top: 227px;
             }}
             .middle-lineq{{
                 position: absolute;
                 left: 10px;
                 width: 20px;
-                border-top: 4px solid #FFF;
+                border-top: 5px solid #FFF;
             }}
             .middle-lineq.one{{
-                top: 44px;
+                top: 93px;
             }}
             .middle-lineq.lose{{
-                top:808px;
+                top: 909px;
             }}
             .middle-lineq.two{{
-                top: 274px;
+                top: 363px;
             }}
             .middle-lineq.three{{
-                top: 504px;
+                top: 633px;
             }}
             .middle-lineq.four{{
-                top: 734px;
+                top: 903px;
             }}
             .middle-lines{{
                 position: absolute;
                 left: 10px;
                 width: 20px;
-                border-top: 4px solid #FFF;
+                border-top: 5px solid #FFF;
             }}
             .middle-lines.top{{
-                top: 160px;
+                top: 227px;
             }}
             .middle-lines.bot{{
-                top: 616px;
+                top: 707px;
             }}
             .middle-linef{{
                 position: absolute;
                 left: 10px;
                 width: 20px;
-                border-top: 4px solid #FFF;
+                border-top: 5px solid #FFF;
             }}
             .middle-linef.top{{
-                top: 388px;
+                top: 472px;
             }}
             </style>
             <div class="scroll-container">
@@ -516,7 +516,7 @@ def draw_tree(klasse, number_groups):
                                 <span style="color:{col1}">{winner[1]}</span>
                             </div>
                             <div class="team-box">
-                                <span style="color:{col3}">{third[1]}</span>
+                                {third[1]}
                             </div>
                         </div>
                     </div>
@@ -556,9 +556,9 @@ if st.session_state.admin and not st.session_state.input_mode:
                 grA = st.expander("Gruppe A", on_change="rerun",key="ad_gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wpoints, lpoints, team_group
+                    SELECT name, wins, loses, wsets, lsets, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, wpoints DESC
+                    ORDER BY wins DESC, lsets ASC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'A')
                     st.space("xsmall")
@@ -575,9 +575,9 @@ if st.session_state.admin and not st.session_state.input_mode:
                 grB = st.expander("Gruppe B", on_change="rerun",key="ad_gruppeB",expanded=True)
                 with grB:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wpoints, lpoints, team_group
+                    SELECT name, wins, loses, wsets, lsets, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, wpoints DESC
+                    ORDER BY wins DESC, lsets ASC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'B')
                     st.space("xsmall")
@@ -594,9 +594,9 @@ if st.session_state.admin and not st.session_state.input_mode:
                 grC = st.expander("Gruppe C", on_change="rerun",key="ad_gruppeC",expanded=True)
                 with grC:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wpoints, lpoints, team_group
+                    SELECT name, wins, loses, wsets, lsets, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, wpoints DESC
+                    ORDER BY wins DESC, lsets ASC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'C')
                     st.space("xsmall")
@@ -614,9 +614,9 @@ if st.session_state.admin and not st.session_state.input_mode:
                     grD = st.expander("Gruppe D", on_change="rerun",key="ad_gruppeD",expanded=True)
                     with grD:
                         raw = c.execute("""
-                        SELECT name, wins, loses, wpoints, lpoints, team_group
+                        SELECT name, wins, loses, wsets, lsets, team_group
                         FROM teams WHERE class LIKE '%LVL1/2%'
-                        ORDER BY wins DESC, wpoints DESC
+                        ORDER BY wins DESC, lsets ASC, lpoints ASC
                         """).fetchall()
                         print_table_alt(raw,'D')
                         st.space("xsmall")
@@ -655,27 +655,27 @@ else:
                 grA = st.expander("Gruppe A", on_change="rerun",key="gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wpoints, lpoints, team_group
+                    SELECT name, wins, loses, wsets, lsets, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, wpoints DESC
+                    ORDER BY wins DESC, lsets ASC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'A')
                 st.space("xxsmall")
                 grB = st.expander("Gruppe B", on_change="rerun",key="gruppeB",expanded=True)
                 with grB:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wpoints, lpoints, team_group
+                    SELECT name, wins, loses, wsets, lsets, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, wpoints DESC
+                    ORDER BY wins DESC, lsets ASC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'B')
                 st.space("xxsmall")
                 grC = st.expander("Gruppe C", on_change="rerun",key="gruppeC",expanded=True)
                 with grC:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wpoints, lpoints, team_group
+                    SELECT name, wins, loses, wsets, lsets, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, wpoints DESC
+                    ORDER BY wins DESC, lsets ASC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'C')
                 st.space("xxsmall")
@@ -683,9 +683,9 @@ else:
                     grD = st.expander("Gruppe D", on_change="rerun",key="gruppeD",expanded=True)
                     with grD:
                         raw = c.execute("""
-                        SELECT name, wins, loses, wpoints, lpoints, team_group
+                        SELECT name, wins, loses, wsets, lsets, team_group
                         FROM teams WHERE class LIKE '%LVL1/2%'
-                        ORDER BY wins DESC, wpoints DESC
+                        ORDER BY wins DESC, lsets ASC, lpoints ASC
                         """).fetchall()
                         print_table_alt(raw,'D')
             st.space("stretch")
