@@ -159,7 +159,7 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
             with st.container(horizontal=True):
                 name = st.text_input("Team Name",width=200,label_visibility="collapsed",placeholder="Team Name")
                 klasse = st.selectbox("Klasse", ["MX","HD","DD","LVL1/2"],width=150, label_visibility="collapsed", placeholder="Klasse", index=None)
-                gruppe = st.selectbox("Klasse", ["A","B","C","D"],width=100, label_visibility="collapsed", placeholder="Gruppe", index=None)
+                gruppe = st.selectbox("Gruppe", ["A","B","C","D"],width=100, label_visibility="collapsed", placeholder="Gruppe", index=None)
                 st.space("stretch")
                 submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
             if submit:

@@ -29,6 +29,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 conn = sqlite3.connect("data.db",check_same_thread=False)
 c = conn.cursor()
+st.set_page_config(page_title="Sommerturnier",initial_sidebar_state="expanded",layout="wide",page_icon=":badminton:")
 def parse_to_int(v):
     try:
         return int(v)
