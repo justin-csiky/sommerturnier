@@ -80,21 +80,26 @@ def print_table_alt(r,group):
     if table1==[]:
         with st.container(horizontal=True):
             st.space("stretch")
-            st.markdown(":blue[Turnierleitung erstellt Gruppe...]")
+            if st.session_state.language== "german":
+                st.markdown(":blue[Turnierleitung erstellt Gruppe...]")
+            if st.session_state.language== "english":
+                st.markdown(":blue[Group is being generated...]")
             st.space("stretch")
     else:
         rows_html = ""
         for name, wins, losses, diff in table1:
             rows_html += f'''<div class="row">
-                    <div class="team">{name}</div>
-                    <div class="stat">{wins}</div>
-                    <div class="stat">{losses}</div>
-                    <div class="stat">{diff}</div></div>'''
+                    <div class="team"><font size="2">{name}</font></div>
+                    <div class="stat"><font size="2">{wins}</font></div>
+                    <div class="stat"><font size="2">{losses}</font></div>
+                    <div class="stat"><font size="2">{diff}</font></div></div>'''
         st.markdown(f"""
             <style>
             .scroll-table {{
                 overflow-x: auto;
                 width: 100%;
+                padding-right: 10px;
+                padding-bottom: 10px;  
             }}
             .table-inner {{
                 min-width: 400px;
@@ -123,10 +128,10 @@ def print_table_alt(r,group):
             <div class="scroll-table">
                 <div class="table-inner">
                     <div class="row header">
-                        <div class="team" style="color:#1c83e1;">Team Name</div>
-                        <div class="stat"style="color:#21c354;">W</div>
-                        <div class="stat"style="color:#ff4b4b;">L</div>
-                        <div class="stat" style="color:#1c83e1;">+/-</div>
+                        <div class="team" style="color:#1c83e1;"><font size="3">Team Name</font></div>
+                        <div class="stat"style="color:#21c354;"><font size="3">W</font></div>
+                        <div class="stat"style="color:#ff4b4b;"><font size="3">L</font></div>
+                        <div class="stat" style="color:#1c83e1;"><font size="3">+/-</font></div>
                     </div>
                     {rows_html}
                 </div>
@@ -285,7 +290,7 @@ def draw_tree(klasse, number_groups):
                 overflow-x: scroll;
                 width: 100%;
                 height: 100%;
-                padding-right: 10px;
+                padding-right: 50px;
                 min-width:400px;
             }}
             .bracket-wrapper {{
@@ -357,9 +362,9 @@ def draw_tree(klasse, number_groups):
                 left: 0;
                 height: 115px;
                 width: 10px;
-                border-top: 5px solid #FFF;
-                border-bottom: 5px solid #FFF;
-                border-right: 5px solid #FFF;
+                border-top: 5px solid #1c83e1;
+                border-bottom: 5px solid #1c83e1;
+                border-right: 5px solid #1c83e1;
             }}
             .h-lineq.one {{
                 top: 37px;
@@ -381,9 +386,9 @@ def draw_tree(klasse, number_groups):
                 left: 0;
                 height: 274px;
                 width: 10px;
-                border-top: 5px solid #FFF;
-                border-bottom: 5px solid #FFF;
-                border-right: 5px solid #FFF;
+                border-top: 5px solid #1c83e1;
+                border-bottom: 5px solid #1c83e1;
+                border-right: 5px solid #1c83e1;
             }}
             .h-lines.top {{
                 top: 93px;
@@ -396,9 +401,9 @@ def draw_tree(klasse, number_groups):
                 left: 0;
                 height: 485px;
                 width: 10px;
-                border-top: 5px solid #FFF;
-                border-bottom: 5px solid #FFF;
-                border-right: 5px solid #FFF;
+                border-top: 5px solid #1c83e1;
+                border-bottom: 5px solid #1c83e1;
+                border-right: 5px solid #1c83e1;
             }}
             .h-linef.top {{
                 top: 227px;
@@ -407,7 +412,7 @@ def draw_tree(klasse, number_groups):
                 position: absolute;
                 left: 10px;
                 width: 20px;
-                border-top: 5px solid #FFF;
+                border-top: 5px solid #1c83e1;
             }}
             .middle-lineq.one{{
                 top: 93px;
@@ -428,7 +433,7 @@ def draw_tree(klasse, number_groups):
                 position: absolute;
                 left: 10px;
                 width: 20px;
-                border-top: 5px solid #FFF;
+                border-top: 5px solid #1c83e1;
             }}
             .middle-lines.top{{
                 top: 227px;
@@ -440,7 +445,7 @@ def draw_tree(klasse, number_groups):
                 position: absolute;
                 left: 10px;
                 width: 20px;
-                border-top: 5px solid #FFF;
+                border-top: 5px solid #1c83e1;
             }}
             .middle-linef.top{{
                 top: 472px;
@@ -520,6 +525,8 @@ def draw_tree(klasse, number_groups):
                                 {third[1]}
                             </div>
                         </div>
+                        <div class="connector">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -545,16 +552,25 @@ with st.container(horizontal=True):
     st.space("stretch")
     if st.button(":material/refresh: Reload",width=100):
         st.rerun()
-st.subheader("Level 1-2 Turnier", anchor=False)
+if st.session_state.language== "german":
+    st.subheader("Level 1-2 Turnier", anchor=False)
+if st.session_state.language== "english":
+    st.subheader("Level 1-2 tourney", anchor=False)
 settings= c.execute("SELECT id, group_number FROM settings WHERE class =?",('LVL1/2',)).fetchall()
 if st.session_state.admin and not st.session_state.input_mode:
-    tab1,tab2,tab3=st.tabs(["Gruppenphase", "K/O-Phase","Einstellungen"])
+    if st.session_state.language== "german":
+        tab1,tab2,tab3=st.tabs(["Gruppenphase", "K/O-Phase","Einstellungen"])
+    if st.session_state.language== "english":
+        tab1,tab2,tab3=st.tabs(["Group stage", "K/O phase","Setting"])
     with tab1:
         with st.container(horizontal=True):
             st.space("stretch")
             with st.container(width=500):
                 st.space("small")
-                grA = st.expander("Gruppe A", on_change="rerun",key="ad_gruppeA",expanded=True)
+                if st.session_state.language== "german":
+                    grA = st.expander("Gruppe A", on_change="rerun",key="ad_gruppeA",expanded=True)
+                if st.session_state.language== "english":
+                    grA = st.expander("Group A", on_change="rerun",key="ad_gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
                     SELECT name, wins, loses, wsets, lsets, team_group
@@ -573,7 +589,10 @@ if st.session_state.admin and not st.session_state.input_mode:
                                 finish_group('A')
                         st.space("stretch")
                 st.space("xxsmall")
-                grB = st.expander("Gruppe B", on_change="rerun",key="ad_gruppeB",expanded=True)
+                if st.session_state.language== "german":
+                    grB = st.expander("Gruppe B", on_change="rerun",key="ad_gruppeB",expanded=True)
+                if st.session_state.language== "english":
+                    grB = st.expander("Group B", on_change="rerun",key="ad_gruppeB",expanded=True)
                 with grB:
                     raw = c.execute("""
                     SELECT name, wins, loses, wsets, lsets, team_group
@@ -592,7 +611,10 @@ if st.session_state.admin and not st.session_state.input_mode:
                                 finish_group('B')  
                         st.space("stretch")
                 st.space("xxsmall")
-                grC = st.expander("Gruppe C", on_change="rerun",key="ad_gruppeC",expanded=True)
+                if st.session_state.language== "german":
+                    grC = st.expander("Gruppe C", on_change="rerun",key="ad_gruppeC",expanded=True)
+                if st.session_state.language== "english":
+                    grC = st.expander("Group C", on_change="rerun",key="ad_gruppeC",expanded=True)
                 with grC:
                     raw = c.execute("""
                     SELECT name, wins, loses, wsets, lsets, team_group
@@ -612,7 +634,10 @@ if st.session_state.admin and not st.session_state.input_mode:
                         st.space("stretch")
                 st.space("xxsmall")
                 if settings[0][1]==4:
-                    grD = st.expander("Gruppe D", on_change="rerun",key="ad_gruppeD",expanded=True)
+                    if st.session_state.language== "german":
+                        grD = st.expander("Gruppe D", on_change="rerun",key="ad_gruppeD",expanded=True)
+                    if st.session_state.language== "english":
+                        grD = st.expander("Group D", on_change="rerun",key="ad_gruppeD",expanded=True)
                     with grD:
                         raw = c.execute("""
                         SELECT name, wins, loses, wsets, lsets, team_group
@@ -647,13 +672,19 @@ if st.session_state.admin and not st.session_state.input_mode:
                 conn.commit()
                 st.rerun()
 else:
-    tab1, tab2 = st.tabs(["Gruppenphase", "K/O-Phase"])
+    if st.session_state.language== "german":
+        tab1, tab2 = st.tabs(["Gruppenphase", "K/O-Phase"])
+    if st.session_state.language== "english":
+        tab1, tab2 = st.tabs(["Group stage", "K/O phase"])
     with tab1:
         with st.container(horizontal=True):
             st.space("stretch")
             with st.container(width=600):
                 st.space("small")
-                grA = st.expander("Gruppe A", on_change="rerun",key="gruppeA",expanded=True)
+                if st.session_state.language== "german":
+                    grA = st.expander("Gruppe A", on_change="rerun",key="ad_gruppeA",expanded=True)
+                if st.session_state.language== "english":
+                    grA = st.expander("Group A", on_change="rerun",key="ad_gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
                     SELECT name, wins, loses, wsets, lsets, team_group
@@ -662,7 +693,10 @@ else:
                     """).fetchall()
                     print_table_alt(raw,'A')
                 st.space("xxsmall")
-                grB = st.expander("Gruppe B", on_change="rerun",key="gruppeB",expanded=True)
+                if st.session_state.language== "german":
+                    grB = st.expander("Gruppe B", on_change="rerun",key="ad_gruppeB",expanded=True)
+                if st.session_state.language== "english":
+                    grB = st.expander("Group B", on_change="rerun",key="ad_gruppeB",expanded=True)
                 with grB:
                     raw = c.execute("""
                     SELECT name, wins, loses, wsets, lsets, team_group
@@ -671,7 +705,10 @@ else:
                     """).fetchall()
                     print_table_alt(raw,'B')
                 st.space("xxsmall")
-                grC = st.expander("Gruppe C", on_change="rerun",key="gruppeC",expanded=True)
+                if st.session_state.language== "german":
+                    grC = st.expander("Gruppe C", on_change="rerun",key="ad_gruppeC",expanded=True)
+                if st.session_state.language== "english":
+                    grC = st.expander("Group C", on_change="rerun",key="ad_gruppeC",expanded=True)
                 with grC:
                     raw = c.execute("""
                     SELECT name, wins, loses, wsets, lsets, team_group
@@ -681,7 +718,10 @@ else:
                     print_table_alt(raw,'C')
                 st.space("xxsmall")
                 if settings[0][1]==4:
-                    grD = st.expander("Gruppe D", on_change="rerun",key="gruppeD",expanded=True)
+                    if st.session_state.language== "german":
+                        grD = st.expander("Gruppe D", on_change="rerun",key="ad_gruppeD",expanded=True)
+                    if st.session_state.language== "english":
+                        grD = st.expander("Group D", on_change="rerun",key="ad_gruppeD",expanded=True)
                     with grD:
                         raw = c.execute("""
                         SELECT name, wins, loses, wsets, lsets, team_group

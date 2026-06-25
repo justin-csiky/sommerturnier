@@ -130,8 +130,8 @@ with st.container(horizontal=True):
         st.session_state.language="english"
         st.rerun()
     st.space("stretch")
-st.title("Sommerturnier - V1.11.1",anchor=False)
-st.html("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>")
+st.title("Sommerturnier - V1.12.1",anchor=False)
+#st.markdown("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>", unsafe_allow_html=True)
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":
         st.markdown('''<div>
