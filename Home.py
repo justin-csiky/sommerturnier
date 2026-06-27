@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_theme import st_theme
 import sqlite3
 from datetime import datetime
 
@@ -11,7 +10,7 @@ st.markdown("""
         display: none;
         visibility: hidden;
     }
-            
+    ._terminalButton_rix23_138 {display:none;}      
     [data-testid="stMainMenu"] {display: none;}
             
     [data-testid="stToolbarActions"] {display: none;}
@@ -317,4 +316,3 @@ with st.container(border=True,width=1000):
                             </div>  
                         </div>      
                     ''', unsafe_allow_html=True)
-print(st.theme)
