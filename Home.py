@@ -6,8 +6,10 @@ from datetime import datetime
 # --- UI CLEANUP ---
 st.markdown("""
 <style>
-    a._container_gzau3_1 _viewerBadge_aycw8_23{
+    a[href*="streamlit.io"] {
         hidden: true;
+        display: none;
+        visibility: hidden;
     }
     ._profileContainer_gzau3_53 {
         hidden: true;
