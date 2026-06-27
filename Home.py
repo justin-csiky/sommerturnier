@@ -155,9 +155,9 @@ with st.container(horizontal=True):
         st.rerun()
     st.space("stretch")
 if st.session_state.language== "german":
-    st.title("Sommerturnier - V1.13.4",anchor=False)
+    st.title("Sommerturnier - V2.0",anchor=False)
 elif st.session_state.language== "english":
-    st.title("Summer tourney - V1.13.4",anchor=False)
+    st.title("Summer tourney - V2.0",anchor=False)
 #st.markdown("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>", unsafe_allow_html=True)
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":
