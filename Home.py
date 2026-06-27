@@ -31,6 +31,18 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+    .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
+    .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
+    .viewerBadge_text__1JaDK {
+        display: none;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 st.set_page_config(page_title="Sommerturnier",initial_sidebar_state="expanded",layout="wide",page_icon=":badminton:")
 home=st.Page("./Home.py",title="Home",icon=":material/dashboard:")
@@ -133,9 +145,9 @@ with st.container(horizontal=True):
         st.rerun()
     st.space("stretch")
 if st.session_state.language== "german":
-    st.title("Sommerturnier - V1.13.3",anchor=False)
+    st.title("Sommerturnier - V1.13.4",anchor=False)
 elif st.session_state.language== "english":
-    st.title("Summer tourney - V1.13.3",anchor=False)
+    st.title("Summer tourney - V1.13.4",anchor=False)
 #st.markdown("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>", unsafe_allow_html=True)
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":
