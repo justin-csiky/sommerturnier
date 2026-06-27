@@ -6,8 +6,11 @@ from datetime import datetime
 # --- UI CLEANUP ---
 st.markdown("""
 <style>
+    a._container_gzau3_1 _viewerBadge_aycw8_23{
+        hidden: true;
+    }
     ._profileContainer_gzau3_53 {
-        display: none;
+        hidden: true;
     }
     [data-testid="stMainMenu"] {display: none;}
     [data-testid="stToolbarActions"] {display: none;}
