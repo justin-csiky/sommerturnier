@@ -6,19 +6,22 @@ from datetime import datetime
 # --- UI CLEANUP ---
 st.markdown("""
 <style>
-    a[href*="streamlit.io"] {
+    a[href*="streamlit.io/cloud"] {
         hidden: true;
         display: none;
         visibility: hidden;
     }
-    ._profileContainer_gzau3_53 {
-        hidden: true;
-    }
+            
     [data-testid="stMainMenu"] {display: none;}
+            
     [data-testid="stToolbarActions"] {display: none;}
-    [data-testid="appCreatorAvatar"] {display: none;}
+            
+    div:has([data-testid="appCreatorAvatar"]) {display: none !important;}
+            
     [data-testid="manage-app-button"] {display: none;}
+            
     a[href*="https://streamlit.io/cloud"] {display: none !important;}
+            
     footer {display: none;}
 </style>
 """, unsafe_allow_html=True)
