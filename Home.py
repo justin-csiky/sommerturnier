@@ -10,6 +10,7 @@ st.markdown("""
     [data-testid="stToolbarActions"] {display: none;}
     [data-testid="appCreatorAvatar"] {display: none;}
     [data-testid="manage-app-button"] {display: none;}
+    [class="_container_gzau3_1 _viewerBadge_aycw8_23"] {display: none;}
     footer {display: none;}
 </style>
 """, unsafe_allow_html=True)
@@ -132,9 +133,9 @@ with st.container(horizontal=True):
         st.rerun()
     st.space("stretch")
 if st.session_state.language== "german":
-    st.title("Sommerturnier - V1.13.1",anchor=False)
+    st.title("Sommerturnier - V1.13.3",anchor=False)
 elif st.session_state.language== "english":
-    st.title("Summer tourney - V1.13.1",anchor=False)
+    st.title("Summer tourney - V1.13.3",anchor=False)
 #st.markdown("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>", unsafe_allow_html=True)
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":
