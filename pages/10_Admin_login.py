@@ -323,7 +323,7 @@ if st.session_state.admin:
                         st.session_state.group_class=None
                         st.session_state.searched_group=None
                         st.rerun()
-    else:
+    elif not st.session_state.input_mode:
         ms = st.expander("Match search",expanded=False, key = "ms_key")
         with ms:
             with st.form("search_match", clear_on_submit=True,border=False):
