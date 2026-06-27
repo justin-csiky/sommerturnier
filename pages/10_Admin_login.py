@@ -32,7 +32,7 @@ c = conn.cursor()
 def get_team_name(team_id):
     res = c.execute("SELECT name FROM teams WHERE id=?", (team_id,)).fetchone()
     return res[0] if res else "Unknown"
-state_change = "admin123"
+state_change = "sommerturnier2706"
 if "admin" not in st.session_state:
     st.session_state.admin = False
 if "selected_match" not in st.session_state:
