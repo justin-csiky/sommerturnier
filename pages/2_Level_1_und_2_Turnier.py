@@ -463,17 +463,17 @@ def draw_tree(klasse, number_groups):
                 <div class="bracket-wrapper">
                     <div class="bracket-row">
                         <div class="team-column">
-                            <div class="team-box">{quaters1_team1[1]}</div>
-                            <div class="team-box">{quaters1_team2[1]}</div>
+                            <div class="team-box"><span style="color:#FFFFFF">{quaters1_team1[1]}</span></div>
+                            <div class="team-box"><span style="color:#FFFFFF">{quaters1_team2[1]}</span></div>
                             <div style="height:10px"></div>
-                            <div class="team-box">{quaters2_team1[1]}</div>
-                            <div class="team-box">{quaters2_team2[1]}</div>
+                            <div class="team-box"><span style="color:#FFFFFF">{quaters2_team1[1]}</span></div>
+                            <div class="team-box"><span style="color:#FFFFFF">{quaters2_team2[1]}</span></div>
                             <div style="height:10px"></div>
-                            <div class="team-box">{quaters3_team1[1]}</div>
-                            <div class="team-box">{quaters3_team2[1]}</div>
+                            <div class="team-box"><span style="color:#FFFFFF">{quaters3_team1[1]}</span></div>
+                            <div class="team-box"><span style="color:#FFFFFF">{quaters3_team2[1]}</span></div>
                             <div style="height:10px"></div>
-                            <div class="team-box">{quaters4_team1[1]}</div>
-                            <div class="team-box">{quaters4_team2[1]}</div>
+                            <div class="team-box"><span style="color:#FFFFFF">{quaters4_team1[1]}</span></div>
+                            <div class="team-box"><span style="color:#FFFFFF">{quaters4_team2[1]}</span></div>
                         </div>
                         <div class="connector">
                             <div class="h-lineq one"></div>
@@ -487,16 +487,16 @@ def draw_tree(klasse, number_groups):
                         </div>
                         <div class="team-column2">
                             <div class="team-box">
-                                {semi1_team1[1]}
+                                <span style="color:#FFFFFF">{semi1_team1[1]}</span>
                             </div>
                             <div class="team-box">
-                                {semi1_team2[1]}
+                                <span style="color:#FFFFFF">{semi1_team2[1]}</span>
                             </div>
                             <div class="team-box">
-                                {semi2_team1[1]}
+                                <span style="color:#FFFFFF">{semi2_team1[1]}</span>
                             </div>
                             <div class="team-box">
-                                {semi2_team2[1]}
+                                <span style="color:#FFFFFF">{semi2_team2[1]}</span>
                             </div>
                         </div>
                         <div class="connector">
@@ -507,16 +507,16 @@ def draw_tree(klasse, number_groups):
                         </div>
                         <div class="team-column3">
                             <div class="team-box special1">
-                                {finals_team1[1]}
+                                <span style="color:#FFFFFF">{finals_team1[1]}</span>
                             </div>
                             <div class="team-box special2">
-                                {finals_team2[1]}
+                                <span style="color:#FFFFFF">{finals_team2[1]}</span>
                             </div>
                             <div class="team-box special3">
-                                {loser_finals_team1[1]}
+                                <span style="color:#FFFFFF">{loser_finals_team1[1]}</span>
                             </div>
                             <div class="team-box">
-                                {loser_finals_team2[1]}
+                                <span style="color:#FFFFFF">{loser_finals_team2[1]}</span>
                             </div>
                         </div>
                         <div class="connector">
@@ -530,7 +530,7 @@ def draw_tree(klasse, number_groups):
                                 <span style="color:{col1}">{winner[1]}</span>
                             </div>
                             <div class="team-box">
-                                {third[1]}
+                                <span style="color:#FFFFFF">{third[1]}</span>
                             </div>
                         </div>
                         <div class="connector">
