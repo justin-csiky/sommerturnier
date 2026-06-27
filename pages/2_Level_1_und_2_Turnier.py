@@ -74,9 +74,14 @@ def print_table(r,group):
     return 0
 def print_table_alt(r,group):
     table1=[]
+    if c.execute("SELECT id FROM groups WHERE class='LVL1/2' and is_done=1 and group_name=?",(group,)).fetchone():
+        col1="#CFB23F"
+    else:
+        col1="#FFFFFF"
     for i in r:
-        if i[5]==group:
-            table1.append([i[0],i[1],i[2],f"{i[3]} : {i[4]}"])
+        if i[7]==group:
+            points = i[5]-i[6]
+            table1.append([i[0],i[1],i[2],f"{i[3]} : {i[4]}", f"{points}"])
     if table1==[]:
         with st.container(horizontal=True):
             st.space("stretch")
@@ -87,12 +92,14 @@ def print_table_alt(r,group):
             st.space("stretch")
     else:
         rows_html = ""
-        for name, wins, losses, diff in table1:
+        for name, wins, losses, diff, pts in table1:
             rows_html += f'''<div class="row">
-                    <div class="team"><font size="2">{name}</font></div>
+                    <div class="team"><span style="color:{col1}"><font size="2">{name}</font></span></div>
                     <div class="stat"><font size="2">{wins}</font></div>
                     <div class="stat"><font size="2">{losses}</font></div>
-                    <div class="stat"><font size="2">{diff}</font></div></div>'''
+                    <div class="stat"><font size="2">{diff}</font></div>
+                    <div class="stat"><font size="2">{pts}</font></div></div>'''
+            col1="#FFFFFF"
         st.markdown(f"""
             <style>
             .scroll-table {{
@@ -131,7 +138,8 @@ def print_table_alt(r,group):
                         <div class="team" style="color:#1c83e1;"><font size="3">Team Name</font></div>
                         <div class="stat"style="color:#21c354;"><font size="3">W</font></div>
                         <div class="stat"style="color:#ff4b4b;"><font size="3">L</font></div>
-                        <div class="stat" style="color:#1c83e1;"><font size="3">+/-</font></div>
+                        <div class="stat" style="color:#1c83e1;"><font size="3">Sets</font></div>
+                        <div class="stat" style="color:#1c83e1;"><font size="3">Pts +/-</font></div>
                     </div>
                     {rows_html}
                 </div>
@@ -553,9 +561,9 @@ with st.container(horizontal=True):
     if st.button(":material/refresh: Reload",width=100):
         st.rerun()
 if st.session_state.language== "german":
-    st.subheader("Level 1-2 Turnier", anchor=False)
+    st.subheader("Level 1 und 2 Turnier", anchor=False)
 if st.session_state.language== "english":
-    st.subheader("Level 1-2 tourney", anchor=False)
+    st.subheader("Level 1 and 2 tourney", anchor=False)
 settings= c.execute("SELECT id, group_number FROM settings WHERE class =?",('LVL1/2',)).fetchall()
 if st.session_state.admin and not st.session_state.input_mode:
     if st.session_state.language== "german":
@@ -573,9 +581,9 @@ if st.session_state.admin and not st.session_state.input_mode:
                     grA = st.expander("Group A", on_change="rerun",key="ad_gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wsets, lsets, team_group
+                    SELECT name, wins, loses, wsets, lsets, wpoints, lpoints, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, lsets ASC, lpoints ASC
+                    ORDER BY wins DESC, wsets DESC, lsets ASC, wpoints DESC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'A')
                     st.space("xsmall")
@@ -595,9 +603,9 @@ if st.session_state.admin and not st.session_state.input_mode:
                     grB = st.expander("Group B", on_change="rerun",key="ad_gruppeB",expanded=True)
                 with grB:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wsets, lsets, team_group
+                    SELECT name, wins, loses, wsets, lsets, wpoints, lpoints, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, lsets ASC, lpoints ASC
+                    ORDER BY wins DESC, wsets DESC, lsets ASC, wpoints DESC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'B')
                     st.space("xsmall")
@@ -617,9 +625,9 @@ if st.session_state.admin and not st.session_state.input_mode:
                     grC = st.expander("Group C", on_change="rerun",key="ad_gruppeC",expanded=True)
                 with grC:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wsets, lsets, team_group
+                    SELECT name, wins, loses, wsets, lsets, wpoints, lpoints, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, lsets ASC, lpoints ASC
+                    ORDER BY wins DESC, wsets DESC, lsets ASC, wpoints DESC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'C')
                     st.space("xsmall")
@@ -640,9 +648,9 @@ if st.session_state.admin and not st.session_state.input_mode:
                         grD = st.expander("Group D", on_change="rerun",key="ad_gruppeD",expanded=True)
                     with grD:
                         raw = c.execute("""
-                        SELECT name, wins, loses, wsets, lsets, team_group
+                        SELECT name, wins, loses, wsets, lsets, wpoints, lpoints, team_group
                         FROM teams WHERE class LIKE '%LVL1/2%'
-                        ORDER BY wins DESC, lsets ASC, lpoints ASC
+                        ORDER BY wins DESC, wsets DESC, lsets ASC, wpoints DESC, lpoints ASC
                         """).fetchall()
                         print_table_alt(raw,'D')
                         st.space("xsmall")
@@ -687,9 +695,9 @@ else:
                     grA = st.expander("Group A", on_change="rerun",key="ad_gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wsets, lsets, team_group
+                    SELECT name, wins, loses, wsets, lsets, wpoints, lpoints, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, lsets ASC, lpoints ASC
+                    ORDER BY wins DESC, wsets DESC, lsets ASC, wpoints DESC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'A')
                 st.space("xxsmall")
@@ -699,9 +707,9 @@ else:
                     grB = st.expander("Group B", on_change="rerun",key="ad_gruppeB",expanded=True)
                 with grB:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wsets, lsets, team_group
+                    SELECT name, wins, loses, wsets, lsets, wpoints, lpoints, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, lsets ASC, lpoints ASC
+                    ORDER BY wins DESC, wsets DESC, lsets ASC, wpoints DESC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'B')
                 st.space("xxsmall")
@@ -711,9 +719,9 @@ else:
                     grC = st.expander("Group C", on_change="rerun",key="ad_gruppeC",expanded=True)
                 with grC:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wsets, lsets, team_group
+                    SELECT name, wins, loses, wsets, lsets, wpoints, lpoints, team_group
                     FROM teams WHERE class LIKE '%LVL1/2%'
-                    ORDER BY wins DESC, lsets ASC, lpoints ASC
+                    ORDER BY wins DESC, wsets DESC, lsets ASC, wpoints DESC, lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'C')
                 st.space("xxsmall")
@@ -724,9 +732,9 @@ else:
                         grD = st.expander("Group D", on_change="rerun",key="ad_gruppeD",expanded=True)
                     with grD:
                         raw = c.execute("""
-                        SELECT name, wins, loses, wsets, lsets, team_group
+                        SELECT name, wins, loses, wsets, lsets, wpoints, lpoints, team_group
                         FROM teams WHERE class LIKE '%LVL1/2%'
-                        ORDER BY wins DESC, lsets ASC, lpoints ASC
+                        ORDER BY wins DESC, wsets DESC, lsets ASC, wpoints DESC, lpoints ASC
                         """).fetchall()
                         print_table_alt(raw,'D')
             st.space("stretch")

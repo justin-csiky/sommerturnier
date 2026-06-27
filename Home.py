@@ -130,11 +130,14 @@ with st.container(horizontal=True):
         st.session_state.language="english"
         st.rerun()
     st.space("stretch")
-st.title("Sommerturnier - V1.12.1",anchor=False)
+if st.session_state.language== "german":
+    st.title("Sommerturnier - V1.13.1",anchor=False)
+elif st.session_state.language== "english":
+    st.title("Summer tourney - V1.13.1",anchor=False)
 #st.markdown("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>", unsafe_allow_html=True)
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":
-        st.markdown('''<div>
+        st.markdown('''<div style="pointer-events: none">
                             <h3>
                                 Welcome to the summer tourney website!
                             </h3>  
@@ -143,7 +146,7 @@ with st.container(border=True,width=1000):
                             <div style="line-height:.75;">
                                 <br></br>
                             </div>
-                            <div>
+                            <div style="pointer-events: none">
                                 <u>
                                     <h6>
                                         How you use the website:
@@ -153,15 +156,12 @@ with st.container(border=True,width=1000):
                             <div style="line-height:.25;">
                                 <br></br>
                             </div>
-                            <div>In the <span style="color:#1c83e1;">sidebar</span>, you will find a link to all ongoing games, in addition to the different classes. 
-                                Once the games are announced, you can view them there and enter your results after the game has ended.
-                                Please note that once submitted, results can only be changed by going to the front desk.<br></br>
-                                Under the different classes you can observe your and your opponents' points, as well as view the final bracket.
+                            <div>In the <span style="color:#1c83e1;">sidebar</span>, you can find a link to informations about all ongoing games. Additionally, you can find the different tourney classes there, with informations about the groups, the current placements and the K/O tree.
                             </div>
                             <div style="line-height:1;">
                                 <br></br>
                             </div>                          
-                            <div>
+                            <div style="pointer-events: none">
                                 <u>
                                     <h6>
                                         Tourney infos:
@@ -169,17 +169,22 @@ with st.container(border=True,width=1000):
                                 </u>
                             </div>
                             <div>
-                                Please register your team at the front desk <span style="color:#1c83e1;">no later than 10 minutes</span> before the start time specified in the schedule.<br></br>
-                                In the Level 1<span>&#x2f;</span>2, Mixed and Men's doubles, we play a group stage with four groups. 
-                                The top team from each group advances to the semifinals. In the women's doubles category, we play all matches.<br></br>
+                                Please register your team at the front desk <span style="color:#1c83e1;">no later than 10 minutes</span> before the start time specified in the schedule.
+                                <div style="line-height:.5;">
+                                    <br></br>
+                                </div>
+                                In the <span style="color:#1c83e1;">Level 1<span>&#x2f;</span>2</span> and <span style="color:#1c83e1;">Men's doubles</span>, we play a group stage with four groups. 
+                                The top two team from each group advance to the quaterfinals. For <span style="color:#1c83e1;">mixed doubles</span>, we play every game, due to the few teams. The <span style="color:#1c83e1;">women's doubles</span> play together with the men's doubles, but get placed separately.
+                                <div style="line-height:.5;">
+                                    <br></br>
+                                </div>
                                 All matches are played as best<span>&ndash;</span>of<span>&ndash;</span>three sets. 
-                                Due to time constraints, we will play <span style="color:#1c83e1;">sets to 15</span> in the group stage, with an overtime period up to a maximum of 17 points.
-                                <span style="color:#1c83e1;">From the semi-finals onwards</span>, sets are played as usual <span style="color:#1c83e1;">to 21</span>.
+                                Due to the temperatures, we will play <span style="color:#1c83e1;">sets to 15</span> with an overtime period up to a <span style="color:#1c83e1;">maximum of 17</span> points.
                             </div>
                             <div style="line-height:1;">
                                 <br></br>
                             </div>                          
-                            <div>
+                            <div style="pointer-events: none">
                                 <u>
                                     <h6>
                                         Schedule:
@@ -190,15 +195,27 @@ with st.container(border=True,width=1000):
                                 <br></br>
                             </div>
                             <div>
-                                09:00 <span>&ndash;</span> 14:15 Level 1<span>&#x2f;</span>2 and Mixed                       
+                                09:00<span>&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&nbsp&nbsp&nbsp</span>Welcome words                       
                             </div>
                             <div>
-                                14:45 <span>&ndash;</span> 19:00 Men's and Women's doubles
+                                09:00 <span>&ndash;</span> 14:00<span>&emsp;&emsp;</span>Level 1<span>&#x2f;</span>2 and mixed doubles                       
                             </div>
+                            <div>
+                                14:00 <span>&ndash;</span> 14:30<span>&emsp;&emsp;</span>Victory ceremony (Level 1<span>&#x2f;</span>2 and mixed)                      
+                            </div>
+                            <div>
+                                14:30 <span>&ndash;</span> 18:00<span>&emsp;&emsp;</span>Men's and Women's doubles
+                            </div>
+                            <div>
+                                18:00 <span>&ndash;</span> 18:15<span>&emsp;&emsp;</span>Victory ceremony (Men's and Women's doubles)
+                            </div>
+                            <div style="line-height:1;">
+                                <br></br>
+                            </div>  
                         </div>      
                     ''', unsafe_allow_html=True)
     if st.session_state.language == "german":
-        st.markdown('''<div>
+        st.markdown('''<div style="pointer-events: none">
                             <h3>
                                 Wilkommen auf der Sommerturnier<span>&ndash;</span>Website!
                             </h3>  
@@ -207,7 +224,7 @@ with st.container(border=True,width=1000):
                             <div style="line-height:.75;">
                                 <br></br>
                             </div>
-                            <div>
+                            <div style="pointer-events: none">
                                 <u>
                                     <h6>
                                         Wie ihr die Website nutzt:
@@ -217,15 +234,12 @@ with st.container(border=True,width=1000):
                             <div style="line-height:.25;">
                                 <br></br>
                             </div>
-                            <div>In der <span style="color:#1c83e1;">Seitenleiste</span> findet ihr neben den verschiedenen Klassen einen Link zu allen laufenden Spielen. 
-                                Nachdem die Spiele ausgerufen werden, könnt ihr sie dort einsehen und nach Ende des Spiels eure Ergebnisse eintragen.
-                                Bitte beachtet, dass die Ergebnisse nach Abgabe nurnoch bei der Turnierleitung geändert werden können.<br></br>
-                                Unter den verschiedenen Klassen könnt ihr die Punkte von euch und euren Gegnern beobachten, sowie den Finalbaum einsehen.
+                            <div>In der <span style="color:#1c83e1;">Seitenleiste</span> findet einen Link zu Infos über alle laufenden Spiele. Zusätzlich findet ihr dort die verschiedenen Turnierklassen, wo ihr die verschiedenen Gruppen, die momentanen Platzierungen und den Finalbaum einsehen könnt.
                             </div>
                             <div style="line-height:1;">
                                 <br></br>
                             </div>                          
-                            <div>
+                            <div style="pointer-events: none">
                                 <u>
                                     <h6>
                                         Turnier<span>&ndash;</span>Infos:
@@ -233,17 +247,22 @@ with st.container(border=True,width=1000):
                                 </u>
                             </div>
                             <div>
-                                Bitte meldet euer Team <span style="color:#1c83e1;">bis 10 Minuten</span> vor Beginn der im Zeitplan angegeben Zeit bei der Turnierleitung an.<br></br>
-                                In den Klassen Level 1<span>&#x2f;</span>2, Mixed und Herrendoppel spielen wir eine <span style="color:#1c83e1;">Gruppenphase</span> mit vier Gruppen. 
-                                Die Erstplatzierten jeder Gruppe ziehen ins Halbfinale ein. In der Klasse Damendoppel spielen wir alle Spiele aus.<br></br>
-                                Alle Spiele werden in zwei Gewinnsätze gespielt. 
-                                Aus Zeitgründen spielen wir in der Gruppenphase die <span style="color:#1c83e1;">Sätze bis 15</span>, mit einer Verlängerung bis maximal 17 Punkten.               
-                                <span style="color:#1c83e1;">Ab dem Halbfinale</span> werden Sätze wie üblich <span style="color:#1c83e1;">bis 21</span> gespielt.
+                                Bitte meldet euer Team <span style="color:#1c83e1;">bis 10 Minuten</span> vor Beginn der im Zeitplan angegeben Zeit bei der Turnierleitung an.
+                                <div style="line-height:.5;">
+                                    <br></br>
+                                </div>
+                                In den Klassen <span style="color:#1c83e1;">Level 1<span>&#x2f;</span>2</span> und <span style="color:#1c83e1;">Herrendoppel</span> spielen wir eine Gruppenphase mit vier Gruppen. 
+                                Die ersten beiden Teams jeder Gruppe ziehen ins Viertelfinale ein. In der Klasse <span style="color:#1c83e1;">Mixed</span> spielen wir aufgrund der wenigen Anmeldungen alle Spiele aus. Die <span style="color:#1c83e1;">Damendoppel</span> spielen mit den Herrendoppeln zusammen, werden aber separat gewertet.
+                                <div style="line-height:.5;">
+                                    <br></br>
+                                </div>
+                                Alle Spiele werden bis zwei Gewinnsätze gespielt. 
+                                Aufgrund der Temperaturen spielen wir die <span style="color:#1c83e1;">Sätze bis 15</span>, mit einer Verlängerung bis <span style="color:#1c83e1;">maximal 17</span> Punkten.
                             </div>
                             <div style="line-height:1;">
                                 <br></br>
                             </div>                          
-                            <div>
+                            <div style="pointer-events: none">
                                 <u>
                                     <h6>
                                         Zeitplan:
@@ -254,10 +273,22 @@ with st.container(border=True,width=1000):
                                 <br></br>
                             </div>
                             <div>
-                                09:00 <span>&ndash;</span> 14:15 Level 1<span>&#x2f;</span>2 und Mixed                       
+                                09:00<span>&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&nbsp&nbsp&nbsp</span>Begrüßung                       
                             </div>
                             <div>
-                                14:45 <span>&ndash;</span> 19:00 Herren<span>&#8211;</span> und Damendoppel
+                                09:00 <span>&ndash;</span> 14:00<span>&emsp;&emsp;</span>Level 1<span>&#x2f;</span>2 und Mixed                       
                             </div>
+                            <div>
+                                14:00 <span>&ndash;</span> 14:30<span>&emsp;&emsp;</span>Siegerehrung (Level 1<span>&#x2f;</span>2 und Mixed)                      
+                            </div>
+                            <div>
+                                14:30 <span>&ndash;</span> 18:00<span>&emsp;&emsp;</span>Herren<span>&#8211;</span> und Damendoppel
+                            </div>
+                            <div>
+                                18:00 <span>&ndash;</span> 18:15<span>&emsp;&emsp;</span>Siegerehrung (Herren<span>&#8211;</span> und Damendoppel)
+                            </div>
+                            <div style="line-height:1;">
+                                <br></br>
+                            </div>  
                         </div>      
                     ''', unsafe_allow_html=True)

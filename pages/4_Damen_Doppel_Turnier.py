@@ -74,9 +74,13 @@ def print_table(r,group):
     return 0
 def print_table_alt(r,group):
     table1=[]
+    if c.execute("SELECT id FROM groups WHERE class='DD' and is_done=1 and group_name='A'").fetchone():
+        col1="#CFB23F"
+    else:
+        col1="#FFFFFF"
     for i in r:
-        if i[5]==group:
-            table1.append([i[0],i[1],i[2],f"{i[3]} : {i[4]}"])
+        points = i[5]-i[6]
+        table1.append([i[0],i[1],i[2],f"{i[3]} : {i[4]}", f"{points}"])
     if table1==[]:
         with st.container(horizontal=True):
             st.space("stretch")
@@ -84,12 +88,14 @@ def print_table_alt(r,group):
             st.space("stretch")
     else:
         rows_html = ""
-        for name, wins, losses, diff in table1:
+        for name, wins, losses, diff, pts in table1:
             rows_html += f'''<div class="row">
-                    <div class="team">{name}</div>
-                    <div class="stat">{wins}</div>
-                    <div class="stat">{losses}</div>
-                    <div class="stat">{diff}</div></div>'''
+                    <div class="team"><span style="color:{col1}"><font size="2">{name}</font></span></div>
+                    <div class="stat"><font size="2">{wins}</font></div>
+                    <div class="stat"><font size="2">{losses}</font></div>
+                    <div class="stat"><font size="2">{diff}</font></div>
+                    <div class="stat"><font size="2">{pts}</font></div></div>'''
+            col1="#FFFFFF"
         st.markdown(f"""
             <style>
             .scroll-table {{
@@ -123,10 +129,11 @@ def print_table_alt(r,group):
             <div class="scroll-table">
                 <div class="table-inner">
                     <div class="row header">
-                        <div class="team" style="color:#1c83e1;">Team Name</div>
-                        <div class="stat"style="color:#21c354;">W</div>
-                        <div class="stat"style="color:#ff4b4b;">L</div>
-                        <div class="stat" style="color:#1c83e1;">+/-</div>
+                        <div class="team" style="color:#1c83e1;"><font size="3">Team Name</font></div>
+                        <div class="stat"style="color:#21c354;"><font size="3">W</font></div>
+                        <div class="stat"style="color:#ff4b4b;"><font size="3">L</font></div>
+                        <div class="stat" style="color:#1c83e1;"><font size="3">Sets</font></div>
+                        <div class="stat" style="color:#1c83e1;"><font size="3">Pts +/-</font></div>
                     </div>
                     {rows_html}
                 </div>
@@ -136,13 +143,7 @@ def finish_group(gname):
     groupid = c.execute("SELECT id, class FROM groups WHERE class=? and group_name=?", ('DD',gname)).fetchone()
     c.execute("UPDATE groups SET is_done=1 WHERE id=?",(groupid[0],))
     conn.commit()
-    teams = c.execute("SELECT id FROM teams WHERE class=? and team_group=? ORDER BY wins DESC, lsets ASC, lpoints ASC", ('DD',gname)).fetchall()
-    placement = 1
-    for i in teams:
-        id = i[0]
-        c.execute("UPDATE teams SET group_placement=? WHERE id=?",(placement,id))
-        placement+=1
-    conn.commit()
+    teams = c.execute("SELECT id FROM teams WHERE class=? ORDER BY total_wins DESC, total_loses ASC, total_wsets DESC, total_lsets ASC, total_wpoints DESC, total_lpoints ASC", ('DD',)).fetchall()
     st.rerun()
 if "admin" not in st.session_state:
     st.session_state.admin = False
@@ -186,15 +187,15 @@ if st.session_state.admin and not st.session_state.input_mode:
                     grA = st.expander("Group A", on_change="rerun",key="ad_gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wsets, lsets, team_group
+                    SELECT name, total_wins, total_loses, total_wsets, total_lsets, total_wpoints, total_lpoints, team_group
                     FROM teams WHERE class=?
-                    ORDER BY wins DESC, lsets ASC, lpoints ASC
+                    ORDER BY total_wins DESC, total_loses ASC, total_wsets DESC, total_lsets ASC, total_wpoints DESC, total_lpoints ASC
                     """,('DD',)).fetchall()
                     print_table_alt(raw,'A')
                     st.space("xsmall")
                     with st.container(horizontal=True):
                         st.space("stretch")
-                        if c.execute("SELECT id, class FROM groups WHERE is_done=0 and class='DD' and group_name='A'").fetchone():
+                        if c.execute("SELECT id, class FROM groups WHERE is_done=0 and class='DD'").fetchone():
                             if st.button(":red[Gruppe beenden]",width=200,key="ad_bt_gruppeA"):
                                 finish_group('A')
                         else:
@@ -230,9 +231,9 @@ else:
                     grA = st.expander("Group A", on_change="rerun",key="ad_gruppeA",expanded=True)
                 with grA:
                     raw = c.execute("""
-                    SELECT name, wins, loses, wsets, lsets, team_group
+                    SELECT name, total_wins, total_loses, total_wsets, total_lsets, total_wpoints, total_lpoints, team_group
                     FROM teams WHERE class LIKE '%DD%'
-                    ORDER BY wins DESC, lsets ASC, lpoints ASC
+                    ORDER BY total_wins DESC, total_loses ASC, total_wsets DESC, total_lsets ASC, total_wpoints DESC, total_lpoints ASC
                     """).fetchall()
                     print_table_alt(raw,'A')
             st.space("stretch")

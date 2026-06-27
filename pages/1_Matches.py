@@ -239,16 +239,14 @@ if st.session_state.admin and st.session_state.selected_match is None and not st
                 court = st.selectbox("Court", list(range(1,10)), width=100,placeholder="Court",label_visibility="collapsed", index=None)
                 st.space("stretch")
                 submit = st.form_submit_button(":material/Add_Circle:\u00A0\u00A0Add",width=100)
-            if submit:                
-                if team_klasse[p1_name]==team_klasse[p2_name]:
-                    c.execute("""
-                        INSERT INTO matches (player1_id, player2_id, court, is_visible, match_class, stage)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (team_dict[p1_name], team_dict[p2_name], court,0 ,team_klasse[p1_name], stage_name))
-                    conn.commit()
-                    st.rerun()
-                else:
-                    st.warning("Nicht in der gleichen Klasse.")
+            if submit:                               
+                c.execute("""
+                    INSERT INTO matches (player1_id, player2_id, court, is_visible, match_class, stage)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (team_dict[p1_name], team_dict[p2_name], court,0 ,team_klasse[p1_name], stage_name))
+                conn.commit()
+                st.rerun()
+                
 matches = c.execute("""
 SELECT id, player1_id, player2_id, court, last_updated, is_visible, stage
 FROM matches
