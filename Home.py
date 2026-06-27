@@ -6,11 +6,14 @@ from datetime import datetime
 # --- UI CLEANUP ---
 st.markdown("""
 <style>
+    ._profileContainer_gzau3_53 {
+        display: none;
+    }
     [data-testid="stMainMenu"] {display: none;}
     [data-testid="stToolbarActions"] {display: none;}
     [data-testid="appCreatorAvatar"] {display: none;}
     [data-testid="manage-app-button"] {display: none;}
-    a[href*="https://streamlit.io/cloud"] {display: none !important}
+    a[href*="https://streamlit.io/cloud"] {display: none !important;}
     footer {display: none;}
 </style>
 """, unsafe_allow_html=True)
