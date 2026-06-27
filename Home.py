@@ -10,7 +10,7 @@ st.markdown("""
     [data-testid="stToolbarActions"] {display: none;}
     [data-testid="appCreatorAvatar"] {display: none;}
     [data-testid="manage-app-button"] {display: none;}
-    [class="_container_gzau3_1 _viewerBadge_aycw8_23"] {display: none;}
+    a[href*="https://streamlit.io/cloud"] {display: none !important}
     footer {display: none;}
 </style>
 """, unsafe_allow_html=True)
