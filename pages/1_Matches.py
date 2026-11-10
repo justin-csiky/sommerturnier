@@ -1,5 +1,5 @@
 import streamlit as st
-import sqlite3
+from database import get_connection
 from datetime import datetime
 if "admin" not in st.session_state:
     st.session_state.admin = False
@@ -35,7 +35,7 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-conn = sqlite3.connect("data.db",check_same_thread=False)
+conn = get_connection()
 c = conn.cursor()
 # --- HELPERS ---
 def parse_score(v):

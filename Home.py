@@ -1,6 +1,7 @@
 import streamlit as st
-import sqlite3
 from datetime import datetime
+
+from database import initialize_database
 
 # --- UI CLEANUP ---
 st.markdown("""
@@ -59,82 +60,8 @@ home=st.Page("./Home.py",title="Home",icon=":material/dashboard:")
 admin=st.Page("./pages/10_Admin_login.py",title="Admin",icon=":material/admin_panel_settings:")
 
 # --- DATABASE SETUP ---
-conn = sqlite3.connect("data.db", check_same_thread=False)
-c = conn.cursor()
+initialize_database()
 
-c.execute("""
-CREATE TABLE IF NOT EXISTS matches (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    player1_id INTEGER,
-    player2_id INTEGER,
-    court INTEGER,
-    s1_p1 INTEGER,
-    s1_p2 INTEGER,
-    s2_p1 INTEGER,
-    s2_p2 INTEGER,
-    s3_p1 INTEGER,
-    s3_p2 INTEGER,
-    last_updated TIMESTAMP,
-    is_new INTEGER DEFAULT 0,
-    is_visible INTEGER DEFAULT 1,
-    match_class TEXT,
-    stage TEXT
-)
-""")
-conn.commit()
-c.execute("""
-CREATE TABLE IF NOT EXISTS teams (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE,
-    wins INTEGER DEFAULT 0,
-    loses INTEGER DEFAULT 0,
-    wsets INTEGER DEFAULT 0,
-    lsets INTEGER DEFAULT 0,
-    wpoints INTEGER DEFAULT 0,
-    lpoints INTEGER DEFAULT 0,
-    total_wins INTEGER DEFAULT 0,
-    total_loses INTEGER DEFAULT 0,
-    total_wsets INTEGER DEFAULT 0,
-    total_lsets INTEGER DEFAULT 0,
-    total_wpoints INTEGER DEFAULT 0,
-    total_lpoints INTEGER DEFAULT 0,
-    class TEXT,
-    team_group TEXT,
-    group_placement INTEGER DEFAULT 0,
-    quaters_nr_winner INTEGER DEFAULT 0,
-    semis_nr_winner INTEGER DEFAULT 0,
-    third_place INTEGER DEFAULT 0,
-    semis_nr_loser INTEGER DEFAULT 0,
-    finals_winner INTEGER DEFAULT 0
-)
-""")
-conn.commit()
-c.execute("""
-CREATE TABLE IF NOT EXISTS groups (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    class TEXT,
-    group_name TEXT,
-    is_done INTEGER DEFAULT 0
-)
-""")
-c.execute("""
-CREATE TABLE IF NOT EXISTS settings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    class TEXT,
-    group_number INTEGER DEFAULT 4,    
-    which_third_is_missing INTEGER DEFAULT 0     
-)
-""")
-conn.commit()
-settings = c.execute("SELECT id, group_number FROM settings").fetchall()
-number=c.execute("SELECT Count(id) FROM settings").fetchall()
-if not number[0][0]==4:
-    c.execute("DELETE FROM settings")
-    c.execute("INSERT INTO settings (class) VALUES (?)",('LVL1/2',))
-    c.execute("INSERT INTO settings (class) VALUES (?)",('MX',))
-    c.execute("INSERT INTO settings (class) VALUES (?)",('DD',))
-    c.execute("INSERT INTO settings (class) VALUES (?)",('HD',))
-    conn.commit()
 # --- SESSION STATE ---
 if "admin" not in st.session_state:
     st.session_state.admin = False
@@ -153,17 +80,19 @@ with st.container(horizontal=True):
     if st.button("🇬🇧"):
         st.session_state.language="english"
         st.rerun()
+    if st.button(":santa:"):
+        st.snow()
     st.space("stretch")
 if st.session_state.language== "german":
-    st.title("Sommerturnier - V2.0",anchor=False)
+    st.title("Weihnachtsturnier - V2.0",anchor=False)
 elif st.session_state.language== "english":
-    st.title("Summer tourney - V2.0",anchor=False)
+    st.title("Christmas tourney - V2.0",anchor=False)
 #st.markdown("<style>[data-testid='stHeaderActionElements'] {display: none;}</style>", unsafe_allow_html=True)
 with st.container(border=True,width=1000):
     if st.session_state.language == "english":
         st.markdown('''<div style="pointer-events: none">
                             <h3>
-                                Welcome to the summer tourney website!
+                                Welcome to the christmas tourney website!
                             </h3>  
                         </div>
                         <div style="line-height:2;">
@@ -241,7 +170,7 @@ with st.container(border=True,width=1000):
     if st.session_state.language == "german":
         st.markdown('''<div style="pointer-events: none">
                             <h3>
-                                Wilkommen auf der Sommerturnier<span>&ndash;</span>Website!
+                                Willkommen auf der Weihnachtsturnier<span>&ndash;</span>Website!
                             </h3>  
                         </div>
                         <div style="line-height:2;">

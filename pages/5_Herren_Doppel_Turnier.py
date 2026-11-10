@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from database import get_connection
 import sqlite3
 st.markdown("""
 <style>
@@ -27,7 +28,7 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-conn = sqlite3.connect("data.db",check_same_thread=False)
+conn = get_connection()
 c = conn.cursor()
 st.set_page_config(page_title="Sommerturnier",initial_sidebar_state="expanded",layout="wide",page_icon=":badminton:")
 def parse_to_int(v):
