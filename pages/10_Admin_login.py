@@ -32,7 +32,7 @@ c = conn.cursor()
 def get_team_name(team_id):
     res = c.execute("SELECT name FROM teams WHERE id=?", (team_id,)).fetchone()
     return res[0] if res else "Unknown"
-state_change = "admin123"
+state_change = "sommerturnier2706"
 if "admin" not in st.session_state:
     st.session_state.admin = False
 if "selected_match" not in st.session_state:
@@ -323,7 +323,7 @@ if st.session_state.admin:
                         st.session_state.group_class=None
                         st.session_state.searched_group=None
                         st.rerun()
-    else:
+    elif not st.session_state.input_mode:
         ms = st.expander("Match search",expanded=False, key = "ms_key")
         with ms:
             with st.form("search_match", clear_on_submit=True,border=False):
